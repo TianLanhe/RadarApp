@@ -33,14 +33,15 @@
         <ImageView
             android:id="@+id/header"
             android:layout_width="match_parent"
-            android:layout_height="35dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:background="@drawable/radar_header"
             android:contentDescription="@null" />
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="10"
             android:background="@drawable/centre_radar"
             android:padding="10dp" >
 
