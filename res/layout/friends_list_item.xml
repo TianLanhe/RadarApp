@@ -3,9 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/friends_list_item_background"
-    android:paddingLeft="40dp"
+    android:paddingLeft="50dp"
     android:paddingRight="10dp"
-    android:paddingTop="10dp" >
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp" >
 
     <TextView
         android:id="@+id/name_cell"
@@ -13,16 +14,17 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_gravity="center_vertical"
-        android:paddingLeft="10dp"
-        android:paddingTop="3dp"
+        android:gravity="center"
+        android:layout_centerVertical="true"
         android:textColor="#39b54a"
-        android:textSize="18sp" />
+        android:textSize="17sp" />
 
     <Button
         android:id="@+id/delete_button_cell"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
         android:background="@drawable/button_list_delete_def" />
 
 </RelativeLayout>

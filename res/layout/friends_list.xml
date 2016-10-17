@@ -7,11 +7,13 @@
     <RelativeLayout
         android:id="@+id/vgp_friends_list_header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:background="@drawable/friends_list_header"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingTop="8dp" >
+        android:paddingBottom="5dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="5dp" >
 
         <Button
             android:id="@+id/btn_friends_list_add"
@@ -34,15 +36,16 @@
         android:id="@+id/lvw_friends_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:scrollbars="@null"
-        android:layout_weight="1" />
+        android:layout_weight="10"
+        android:background="@drawable/list_footer"
+        android:scrollbars="@null" />
 
     <RelativeLayout
         android:id="@+id/vgp_friends_list_footer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/list_footer"
-        android:padding="5dp" >
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/list_footer" >
 
         <Button
             android:id="@+id/btn_friends_list_radar"
