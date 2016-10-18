@@ -18,9 +18,17 @@ import com.baidu.mapapi.model.LatLng;
 import com.example.friendradar.R;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -45,6 +53,17 @@ public class MainActivity extends Activity {
 	private List<People> list_friends;
 	private List<People> list_enemies;
 	private RadarApplication radarapplication;
+
+	// 询问短信常量
+	private final String ASK_LOCATION_MESSAGE = "Where are you?";
+	private final String SEND_ACTION = "com.example.friendradar.SEND_ACTION";
+	private final String DELIVERY_ACTION = "com.example.frinedradar.DELIVERY_ACTION";
+	private final String ALARM_ACTION = "com.example.frinedradar.ALARM_ACTION";
+
+	private RadarLocationMsgReceiver msgreceiver = new RadarLocationMsgReceiver();;
+	private SendReceiver sendreceiver = new SendReceiver();
+	private DeliveryReceiver deliveryreceiver = new DeliveryReceiver();
+	private AlarmReceiver alarmreceiver = new AlarmReceiver();
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -98,6 +117,7 @@ public class MainActivity extends Activity {
 
 		// 百度地图开启定位，在中心显示自己的位置
 		baidumap.setMyLocationEnabled(true);
+		// baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(18));
 		locationclient.registerLocationListener(new BDLocationListener() {
 			@Override
 			public void onReceiveLocation(BDLocation location) {
@@ -107,14 +127,21 @@ public class MainActivity extends Activity {
 				else {
 					LatLng ll = new LatLng(location.getLatitude(), location
 							.getLongitude());
-					baidumap.animateMapStatus(MapStatusUpdateFactory
+					Log.d("mytag", "Latitude:" + location.getLatitude());
+					Log.d("mytag", "Longitude:" + location.getLongitude());
+
+					// baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(15));
+					baidumap.animateMapStatus(MapStatusUpdateFactory // 将地图定位到该位置
 							.newLatLng(ll));
+
+					// 在地图上显示我的位置，一个点
 					MyLocationData.Builder builder = new MyLocationData.Builder();
 					builder.accuracy(location.getRadius());
 					builder.latitude(location.getLatitude());
 					builder.longitude(location.getLongitude());
 					MyLocationData data = builder.build();
 					baidumap.setMyLocationData(data);
+
 				}
 			}
 
@@ -133,19 +160,68 @@ public class MainActivity extends Activity {
 		button_location.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				locationclient.requestLocation();//要start后才能请求位置
+				locationclient.requestLocation();// 要start后才能请求位置
 			}
 		});
+
+		refresh.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				if (list_friends.size() == 0 && list_enemies.size() == 0) {
+					Toast.makeText(MainActivity.this,
+							"You have no friends or enemies!",
+							Toast.LENGTH_LONG).show();
+				} else {
+					// 注册短信广播接收器
+					registerReceiver(msgreceiver, new IntentFilter(
+							"android.provider.Telephony.SMS_RECEIVED"));
+					registerReceiver(sendreceiver,
+							new IntentFilter(SEND_ACTION));
+					registerReceiver(deliveryreceiver, new IntentFilter(
+							DELIVERY_ACTION));
+					registerReceiver(alarmreceiver, new IntentFilter(
+							ALARM_ACTION));
+
+					// 给每个朋友和敌人发送一条短信
+					for (People friend : list_friends)
+						sendMessage(friend.getPhoneNum());
+					for (People enemy : list_enemies)
+						sendMessage(enemy.getPhoneNum());
+
+					// 15秒后取消注册短信广播接收器
+					AlarmManager alarmmanager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+					long starttime = SystemClock.elapsedRealtime() + 1000 * 15;
+					Intent intent = new Intent(ALARM_ACTION);
+					PendingIntent pendingintent = PendingIntent.getBroadcast(
+							MainActivity.this, 0, intent, 0);
+					alarmmanager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+							starttime, pendingintent);
+				}
+			}
+		});
+	}
+
+	// 发送一条询问短信，形参传入手机号码
+	private void sendMessage(String phonenum) {
+		SmsManager smsmanager = SmsManager.getDefault();
+		PendingIntent sentIntent = PendingIntent.getBroadcast(this,
+				Integer.parseInt(phonenum.substring(7)),
+				new Intent(SEND_ACTION), PendingIntent.FLAG_UPDATE_CURRENT);
+		PendingIntent deliveryIntent = PendingIntent.getBroadcast(this, Integer
+				.parseInt(phonenum.substring(7)), new Intent(DELIVERY_ACTION),
+				PendingIntent.FLAG_UPDATE_CURRENT);
+		smsmanager.sendTextMessage(phonenum, null, ASK_LOCATION_MESSAGE,
+				sentIntent, deliveryIntent);
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		
+
 		locationclient.stop();
 		baidumap.setMyLocationEnabled(false);
 		mapview.onDestroy();
-		
+
 		// 保存朋友列表，若列表为空，则删除文件，否则将列表对象写入文件
 		if (list_friends.size() != 0) {
 			FileOutputStream out;
@@ -198,5 +274,113 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		mapview.onResume();
+	}
+
+	// 内部类实现广播接收器，用于接收位置短信消息并刷新屏幕雷达信息
+	class RadarLocationMsgReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+
+			Bundle bundle = intent.getExtras();
+			Object[] pdus = (Object[]) bundle.get("pdus");
+			SmsMessage[] messages = new SmsMessage[pdus.length];
+			for (int i = 0; i < messages.length; i++) {
+				messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+			}
+			String fullmessage = "";
+			for (SmsMessage msg : messages)
+				fullmessage += msg.getMessageBody();
+			String[] location = fullmessage.split("/");
+			if (location.length != 2)
+				Toast.makeText(context, "The message received is illegal!",
+						Toast.LENGTH_SHORT).show();
+			else {
+				String phonenum = messages[0].getOriginatingAddress();
+				int i;
+				for (i = 0; i < list_friends.size(); i++)
+					if (list_friends.get(i).getPhoneNum().equals(phonenum))
+						break;
+				if (i != list_friends.size()) {
+					// 是朋友
+				} else {
+					for (i = 0; i < list_enemies.size(); i++)
+						if (list_enemies.get(i).getPhoneNum().equals(phonenum))
+							break;
+					if (i != list_enemies.size()) {
+						// 是敌人
+					}
+				}
+
+				// latitude = location[0];
+				// longitude = location[1];
+				// currenttime = System.currentTimeMillis();
+			}
+		}
+	}
+
+	// 用来取消注册短信广播接收器的广播，15秒后自动执行
+	class AlarmReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			context.unregisterReceiver(msgreceiver);
+			context.unregisterReceiver(sendreceiver);
+			context.unregisterReceiver(deliveryreceiver);
+			context.unregisterReceiver(alarmreceiver);
+		}
+	}
+
+	// 当短信发送成功时调用此广播接收器反馈短信发送情况
+	class SendReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context arg0, Intent arg1) {
+			switch (getResultCode()) {
+			case Activity.RESULT_OK:
+				Toast.makeText(getBaseContext(), "Send Success!",
+						Toast.LENGTH_SHORT).show();
+				break;
+			case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+				Toast.makeText(getBaseContext(),
+						"Send Failed because generic failure cause.",
+						Toast.LENGTH_SHORT).show();
+				break;
+			case SmsManager.RESULT_ERROR_NO_SERVICE:
+				Toast.makeText(
+						getBaseContext(),
+						"Send Failed because service is currently unavailable.",
+						Toast.LENGTH_SHORT).show();
+				break;
+			case SmsManager.RESULT_ERROR_NULL_PDU:
+				Toast.makeText(getBaseContext(),
+						"Send Failed because no pdu provided.",
+						Toast.LENGTH_SHORT).show();
+				break;
+			case SmsManager.RESULT_ERROR_RADIO_OFF:
+				Toast.makeText(getBaseContext(),
+						"Send Failed because radio was explicitly turned off.",
+						Toast.LENGTH_SHORT).show();
+				break;
+			default:
+				Toast.makeText(getBaseContext(), "Send Failed.",
+						Toast.LENGTH_SHORT).show();
+				break;
+			}
+		}
+	}
+
+	// 当短信被成功接收时调用此广播接收器反馈短信接收情况
+	class DeliveryReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context arg0, Intent arg1) {
+			switch (getResultCode()) {
+			case Activity.RESULT_OK:
+				Toast.makeText(getBaseContext(), "Delivered Success!",
+						Toast.LENGTH_SHORT).show();
+				break;
+			default:
+				Toast.makeText(getBaseContext(), "Delivered Failed!",
+						Toast.LENGTH_SHORT).show();
+				break;
+			}
+		}
 	}
 }

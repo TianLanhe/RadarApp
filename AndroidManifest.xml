@@ -24,7 +24,9 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_GPS" />
-        
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
     <permission android:name="android.permission.BAIDU_LOCATION_SERVICE" />
 
     <uses-sdk
@@ -55,6 +57,7 @@
             android:launchMode="singleTask" />
         <activity android:name=".FriendDetailActivity" />
         <activity android:name=".EnemyDetailActivity" />
+
         <service
             android:name="com.baidu.location.f"
             android:enabled="true"

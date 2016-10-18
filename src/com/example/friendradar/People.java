@@ -3,13 +3,13 @@ package com.example.friendradar;
 import java.io.Serializable;
 
 @SuppressWarnings("serial")
-public class People implements Serializable{
-	private String name;
-	private String phone_num;
-	private double longitude;
-	private double latitude;
-	private long last_update_time;
-	private double distance;
+public class People implements Serializable {
+	private String name; // 姓名
+	private String phone_num; // 电话号码
+	private double longitude; // 经度
+	private double latitude; // 纬度
+	private long last_update_time; // 最后获得位置信息的时间
+	private double distance; // 距离
 
 	People(String name, String num) {
 		this.name = name;

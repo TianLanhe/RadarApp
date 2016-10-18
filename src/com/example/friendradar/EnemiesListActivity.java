@@ -74,7 +74,7 @@ public class EnemiesListActivity extends Activity {
 						FriendsListActivity.class));
 			}
 		});
-		// 添加朋友按钮，弹出添加对话框
+		// 添加敌人按钮，弹出添加对话框
 		button_add.setOnClickListener(new OnClickListener() {
 			@SuppressLint("InflateParams")
 			@Override
