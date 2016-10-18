@@ -11,8 +11,11 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BitmapDescriptor;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 import com.example.friendradar.R;
@@ -48,6 +51,8 @@ public class MainActivity extends Activity {
 	private MapView mapview;
 	private BaiduMap baidumap;
 	private LocationClient locationclient;
+	private BitmapDescriptor bd_friends;
+	private BitmapDescriptor bd_enemies;
 
 	// 数据相关
 	private List<People> list_friends;
@@ -60,6 +65,7 @@ public class MainActivity extends Activity {
 	private final String DELIVERY_ACTION = "com.example.frinedradar.DELIVERY_ACTION";
 	private final String ALARM_ACTION = "com.example.frinedradar.ALARM_ACTION";
 
+	// 广播接收器
 	private RadarLocationMsgReceiver msgreceiver = new RadarLocationMsgReceiver();;
 	private SendReceiver sendreceiver = new SendReceiver();
 	private DeliveryReceiver deliveryreceiver = new DeliveryReceiver();
@@ -76,6 +82,10 @@ public class MainActivity extends Activity {
 		mapview = (MapView) findViewById(R.id.mapView);
 		baidumap = mapview.getMap();
 		locationclient = new LocationClient(this);
+		bd_friends = BitmapDescriptorFactory
+				.fromResource(R.drawable.friend_marker);
+		bd_enemies = BitmapDescriptorFactory
+				.fromResource(R.drawable.enemy_marker);
 
 		friends = (Button) findViewById(R.id.btn_friends);
 		enemies = (Button) findViewById(R.id.btn_enemies);
@@ -85,7 +95,7 @@ public class MainActivity extends Activity {
 		radarapplication = (RadarApplication) getApplication();
 		list_friends = radarapplication.getFriends();
 		list_enemies = radarapplication.getEnemies();
-
+registerReceiver(msgreceiver, new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
 		// 设置两个按钮长度为屏幕的一半长
 		WindowManager windowmanager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 		int width = windowmanager.getDefaultDisplay().getWidth();
@@ -117,7 +127,15 @@ public class MainActivity extends Activity {
 
 		// 百度地图开启定位，在中心显示自己的位置
 		baidumap.setMyLocationEnabled(true);
-		// baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(18));
+		baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(20));
+
+		LocationClientOption option = new LocationClientOption();
+		option.setOpenGps(true); // 打开GPS
+		option.setCoorType("bd09ll"); // 设置坐标类型
+		option.setScanSpan(0); // 时间设置为0，关闭定时定位
+		option.setIsNeedAddress(true);// 设置携带地理位置信息
+		locationclient.setLocOption(option);
+
 		locationclient.registerLocationListener(new BDLocationListener() {
 			@Override
 			public void onReceiveLocation(BDLocation location) {
@@ -127,8 +145,10 @@ public class MainActivity extends Activity {
 				else {
 					LatLng ll = new LatLng(location.getLatitude(), location
 							.getLongitude());
+
 					Log.d("mytag", "Latitude:" + location.getLatitude());
 					Log.d("mytag", "Longitude:" + location.getLongitude());
+					Log.d("mytag", "Address:" + location.getAddrStr());
 
 					// baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(15));
 					baidumap.animateMapStatus(MapStatusUpdateFactory // 将地图定位到该位置
@@ -141,29 +161,21 @@ public class MainActivity extends Activity {
 					builder.longitude(location.getLongitude());
 					MyLocationData data = builder.build();
 					baidumap.setMyLocationData(data);
-
 				}
 			}
-
-			@Override
-			public void onReceivePoi(BDLocation arg0) {
-			}
-
 		});
-		LocationClientOption option = new LocationClientOption();
-		option.setOpenGps(true); // 打开GPS
-		option.setCoorType("bd09ll"); // 设置坐标类型
-		option.setScanSpan(0); // 时间设置为0，关闭定时定位
-		locationclient.setLocOption(option);
 		locationclient.start();
 
+		// 左上角定位自己功能的按钮
 		button_location.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
+				baidumap.clear();// 清除地图所有覆盖物
 				locationclient.requestLocation();// 要start后才能请求位置
 			}
 		});
 
+		// 右上角刷新按钮，在雷达上显示朋友和敌人的位置
 		refresh.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
@@ -217,10 +229,12 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-
+unregisterReceiver(msgreceiver);
 		locationclient.stop();
 		baidumap.setMyLocationEnabled(false);
 		mapview.onDestroy();
+		bd_friends.recycle();
+		bd_enemies.recycle();
 
 		// 保存朋友列表，若列表为空，则删除文件，否则将列表对象写入文件
 		if (list_friends.size() != 0) {
@@ -289,31 +303,60 @@ public class MainActivity extends Activity {
 			}
 			String fullmessage = "";
 			for (SmsMessage msg : messages)
-				fullmessage += msg.getMessageBody();
-			String[] location = fullmessage.split("/");
+				fullmessage += msg.getMessageBody();// 读取完整短信
+			Log.d("mytag","Message:"+fullmessage);
+			// 注意短信内容：纬度/经度
+			String[] location = fullmessage.split("/"); // 分解出纬度和经度
 			if (location.length != 2)
 				Toast.makeText(context, "The message received is illegal!",
 						Toast.LENGTH_SHORT).show();
 			else {
-				String phonenum = messages[0].getOriginatingAddress();
+				String phonenum = messages[0].getOriginatingAddress().substring(3);//手机号码含中国区号"+86"，需去掉
+				Log.d("mytag","phonenum:"+phonenum);
+				Double latitude = Double.parseDouble(location[0]);
+				Double longitude = Double.parseDouble(location[1]);
 				int i;
-				for (i = 0; i < list_friends.size(); i++)
+				for (i = 0; i < list_friends.size(); i++){
 					if (list_friends.get(i).getPhoneNum().equals(phonenum))
 						break;
-				if (i != list_friends.size()) {
-					// 是朋友
-				} else {
+				}
+					
+				if (i != list_friends.size()) {// 是朋友
+					//设置该朋友属性
+					People friend = list_friends.get(i);
+					friend.setLatitude(latitude);
+					friend.setLongitude(longitude);
+					friend.setUpdateTime(System.currentTimeMillis());
+
+					//更新雷达地图覆盖物
+					LatLng ll = new LatLng(latitude, longitude);
+					MarkerOptions makeroption = new MarkerOptions().icon(
+							bd_friends).position(ll);
+					Bundle temp = new Bundle();
+					temp.putString("phonenum", phonenum);
+					makeroption.extraInfo(temp);
+					baidumap.addOverlay(makeroption);
+				} else {// 不在朋友列表，搜索敌人列表
 					for (i = 0; i < list_enemies.size(); i++)
 						if (list_enemies.get(i).getPhoneNum().equals(phonenum))
 							break;
-					if (i != list_enemies.size()) {
-						// 是敌人
+					if (i != list_enemies.size()) {// 在敌人列表中
+						//设置该敌人属性
+						People enemy = list_enemies.get(i);
+						enemy.setLatitude(latitude);
+						enemy.setLongitude(longitude);
+						enemy.setUpdateTime(System.currentTimeMillis());
+
+						//更新雷达地图覆盖物
+						LatLng ll = new LatLng(latitude, longitude);
+						MarkerOptions makeroption = new MarkerOptions().icon(
+								bd_enemies).position(ll);
+						Bundle temp = new Bundle();
+						temp.putString("phonenum", phonenum);
+						makeroption.extraInfo(temp);
+						baidumap.addOverlay(makeroption);
 					}
 				}
-
-				// latitude = location[0];
-				// longitude = location[1];
-				// currenttime = System.currentTimeMillis();
 			}
 		}
 	}

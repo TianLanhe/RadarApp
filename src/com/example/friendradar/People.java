@@ -10,6 +10,8 @@ public class People implements Serializable {
 	private double latitude; // 纬度
 	private long last_update_time; // 最后获得位置信息的时间
 	private double distance; // 距离
+	private String address;// 地址
+	private double accuracy;// 精度
 
 	People(String name, String num) {
 		this.name = name;
@@ -18,6 +20,22 @@ public class People implements Serializable {
 		longitude = 0;
 		latitude = 0;
 		distance = 0;
+	}
+
+	void setAddr(String address) {
+		this.address = address;
+	}
+
+	String getAddr() {
+		return address;
+	}
+
+	void setAccuracy(double accuracy) {
+		this.accuracy = accuracy;
+	}
+
+	double getAccuracy() {
+		return accuracy;
 	}
 
 	void setName(String name) {

@@ -15,24 +15,25 @@ import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class PeopleListAdapter extends ArrayAdapter<People>{
+public class PeopleListAdapter extends ArrayAdapter<People> {
 	private int resourceID;
 	private int editflag;
-	public static final int EDIT=0;
-	public static final int DONE=1;
+	public static final int EDIT = 0;
+	public static final int DONE = 1;
 
 	public PeopleListAdapter(Context context, int resource, List<People> objects) {
 		super(context, resource, objects);
 		resourceID = resource;
-		editflag=DONE;
+		editflag = DONE;
 	}
-	
-	public void setEdit(int flag){
-		if(flag==EDIT||flag==DONE)
-			editflag=flag;
+
+	public void setEdit(int flag) {
+		if (flag == EDIT || flag == DONE)
+			editflag = flag;
 		else
-			editflag=DONE;
+			editflag = DONE;
 	}
 
 	@Override
@@ -52,50 +53,69 @@ public class PeopleListAdapter extends ArrayAdapter<People>{
 			viewholder.name = (TextView) view.findViewById(R.id.name_cell);
 			viewholder.button_delete = (Button) view
 					.findViewById(R.id.delete_button_cell);
-			
+
 			// 设置textview的大小适应不同分辨率的屏幕
 			// getWidth()获得的值与分辨率有关，因此需除以dpi以获得密度
 			viewholder.name.setTextSize(10 * parent.getWidth()
 					/ getContext().getResources().getDisplayMetrics().xdpi);
-			
+
 			view.setTag(viewholder);
 		} else {
 			view = convertView;
 			viewholder = (ViewHolder) view.getTag();
 		}
 		viewholder.name.setText(people.getName());
-		viewholder.button_delete.setOnClickListener(new OnClickListener(){
+		viewholder.button_delete.setOnClickListener(new OnClickListener() {
 			@SuppressLint("InflateParams")
 			@Override
 			public void onClick(View arg0) {
 				View dialogview = null;
 				Button ok;
 				Button close;
-				AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-				if(resourceID==R.layout.friends_list_item){
-					dialogview=LayoutInflater.from(getContext()).inflate(R.layout.dialog_delete_friend, null);
-				}else if(resourceID==R.layout.enemies_list_item){
-					dialogview=LayoutInflater.from(getContext()).inflate(R.layout.dialog_delete_enemy, null);
+				TextView phonenum;
+				TextView name;
+				final List<People> peoplelist;
+
+				if (resourceID == R.layout.friends_list_item) {
+					peoplelist = ((RadarApplication) getContext()
+							.getApplicationContext()).getFriends();
+					dialogview = LayoutInflater.from(getContext()).inflate(
+							R.layout.dialog_delete_friend, null);
+				} else if (resourceID == R.layout.enemies_list_item) {
+					peoplelist = ((RadarApplication) getContext()
+							.getApplicationContext()).getEnemies();
+					dialogview = LayoutInflater.from(getContext()).inflate(
+							R.layout.dialog_delete_enemy, null);
+				} else {
+					Toast.makeText(getContext(), "Error!", Toast.LENGTH_LONG)
+							.show();
+					peoplelist = null;
 				}
-				ok=(Button) dialogview.findViewById(R.id.btn_dialog_ok);
-				close=(Button) dialogview.findViewById(R.id.btn_dialog_close);
+
+				ok = (Button) dialogview.findViewById(R.id.btn_dialog_ok);
+				close = (Button) dialogview.findViewById(R.id.btn_dialog_close);
+				phonenum = (TextView) dialogview.findViewById(R.id.txt_number);
+				name = (TextView) dialogview
+						.findViewById(R.id.txt_number_label);
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						getContext());
 				builder.setView(dialogview);
-				final AlertDialog dialog=builder.create();
-				close.setOnClickListener(new OnClickListener(){
+				final AlertDialog dialog = builder.create();
+
+				name.setText(peoplelist.get(position).getName());
+				phonenum.setText(peoplelist.get(position).getPhoneNum());
+
+				close.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
 						dialog.dismiss();
 					}
 				});
-				ok.setOnClickListener(new OnClickListener(){
+
+				ok.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
-						List<People> peoplelist = null;
-						if(resourceID==R.layout.friends_list_item){
-							peoplelist=((RadarApplication)getContext().getApplicationContext()).getFriends();
-						}else if(resourceID==R.layout.enemies_list_item){
-							peoplelist=((RadarApplication)getContext().getApplicationContext()).getEnemies();
-						}
 						peoplelist.remove(position);
 						notifyDataSetChanged();
 						dialog.dismiss();
@@ -104,7 +124,7 @@ public class PeopleListAdapter extends ArrayAdapter<People>{
 				dialog.show();
 			}
 		});
-		if(editflag==DONE)
+		if (editflag == DONE)
 			viewholder.button_delete.setVisibility(View.GONE);
 		else
 			viewholder.button_delete.setVisibility(View.VISIBLE);
