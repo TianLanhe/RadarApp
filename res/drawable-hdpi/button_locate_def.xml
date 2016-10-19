@@ -2,8 +2,8 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:drawable="@drawable/button_locate_on" android:state_pressed="true"/>
- <!-- 单击时背景图片 -->
+    <!-- 单击时背景图片 -->
     <item android:drawable="@drawable/button_locate"/>
- <!-- 默认背景图片 -->
+    <!-- 默认背景图片 -->
 
 </selector>

@@ -11,13 +11,21 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BaiduMap.OnMarkerClickListener;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.search.geocode.GeoCodeResult;
+import com.baidu.mapapi.search.geocode.GeoCoder;
+import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
+import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
+import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
+import com.baidu.mapapi.utils.DistanceUtil;
 import com.example.friendradar.R;
 
 import android.app.Activity;
@@ -46,17 +54,23 @@ public class MainActivity extends Activity {
 	private Button button_location;
 	private Button refresh;
 
-	// 百度地图相关
+	// 百度地图UI相关
 	private MapView mapview;
 	private BaiduMap baidumap;
-	private LocationClient locationclient;
+
+	// 百度地图定位与地址相关
 	private BitmapDescriptor bd_friends;
 	private BitmapDescriptor bd_enemies;
+	private LocationClient locationclient;
+	private GeoCoder geocoder;
 
 	// 数据相关
 	private List<People> list_friends;
 	private List<People> list_enemies;
 	private RadarApplication radarapplication;
+	String address;// 以成员变量为桥梁，储存反地址编码得到的地址
+	double mylat;
+	double mylog;
 
 	// 询问短信常量
 	private final String ASK_LOCATION_MESSAGE = "Where are you?";
@@ -80,6 +94,7 @@ public class MainActivity extends Activity {
 		mapview = (MapView) findViewById(R.id.mapView);
 		baidumap = mapview.getMap();
 		locationclient = new LocationClient(this);
+		geocoder = GeoCoder.newInstance();
 		bd_friends = BitmapDescriptorFactory
 				.fromResource(R.drawable.friend_marker);
 		bd_enemies = BitmapDescriptorFactory
@@ -137,6 +152,9 @@ public class MainActivity extends Activity {
 				else {
 					LatLng ll = new LatLng(location.getLatitude(), location
 							.getLongitude());
+
+					mylat = location.getLatitude();
+					mylog = location.getLongitude();
 
 					Log.d("mytag", "Latitude:" + location.getLatitude());
 					Log.d("mytag", "Longitude:" + location.getLongitude());
@@ -201,6 +219,55 @@ public class MainActivity extends Activity {
 					alarmmanager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
 							starttime, pendingintent);
 				}
+			}
+		});
+
+		// 地图上标志物单击事件
+		baidumap.setOnMarkerClickListener(new OnMarkerClickListener() {
+			@Override
+			public boolean onMarkerClick(Marker marker) {
+				String phonenum = marker.getTitle();
+				int i;
+				// 根据电话号码查找朋友和敌人列表，并打开相应的细节界面
+				for (i = 0; i < list_friends.size(); i++)
+					if (list_friends.get(i).getPhoneNum().equals(phonenum))
+						break;
+				// 若是朋友
+				if (i != list_friends.size()) {
+					Intent intent = new Intent(MainActivity.this,
+							FriendDetailActivity.class);
+					intent.putExtra("friend", list_friends.get(i));
+					startActivity(intent);
+				} else {
+					for (i = 0; i < list_enemies.size(); i++)
+						if (list_enemies.get(i).getPhoneNum().equals(phonenum))
+							break;
+					// 若是敌人
+					if (i != list_enemies.size()) {
+						Intent intent = new Intent(MainActivity.this,
+								EnemyDetailActivity.class);
+						intent.putExtra("enemy", list_enemies.get(i));
+						startActivity(intent);
+					} else {
+						Toast.makeText(MainActivity.this,
+								"onMarkerClick_Error!", Toast.LENGTH_LONG)
+								.show();
+					}
+				}
+				return false;
+			}
+		});
+
+		geocoder.setOnGetGeoCodeResultListener(new OnGetGeoCoderResultListener() {
+			@Override
+			public void onGetGeoCodeResult(GeoCodeResult arg0) {
+				// 正向定位，从地址到经纬度坐标，不需要用到
+
+			}
+
+			@Override
+			public void onGetReverseGeoCodeResult(ReverseGeoCodeResult result) {
+				address = result.getAddress();
 			}
 		});
 	}
@@ -303,7 +370,8 @@ public class MainActivity extends Activity {
 						Toast.LENGTH_SHORT).show();
 			else {
 				String phonenum = messages[0].getOriginatingAddress();
-				if(phonenum.startsWith("+86"))phonenum=phonenum.substring(3);// 手机号码含中国区号"+86"，需去掉
+				if (phonenum.startsWith("+86"))
+					phonenum = phonenum.substring(3);// 手机号码含中国区号"+86"，需去掉
 				Log.d("mytag", "MainActivity_Phonenum:" + phonenum);
 				Double latitude = Double.parseDouble(location[0]);
 				Double longitude = Double.parseDouble(location[1]);
@@ -320,10 +388,18 @@ public class MainActivity extends Activity {
 					friend.setLongitude(longitude);
 					friend.setUpdateTime(System.currentTimeMillis());
 
+					geocoder.reverseGeoCode(new ReverseGeoCodeOption()
+							.location(new LatLng(latitude, longitude)));
+					friend.setAddr(address);
+
+					friend.setDistance(DistanceUtil.getDistance(new LatLng(
+							mylat, mylog), new LatLng(latitude, longitude)));
+
 					// 更新雷达地图覆盖物
 					LatLng ll = new LatLng(latitude, longitude);
 					MarkerOptions makeroption = new MarkerOptions()
-							.icon(bd_friends).position(ll);
+							.icon(bd_friends).position(ll)
+							.title(friend.getPhoneNum());
 					Bundle temp = new Bundle();
 					temp.putString("phonenum", phonenum);
 					makeroption.extraInfo(temp);
@@ -339,10 +415,18 @@ public class MainActivity extends Activity {
 						enemy.setLongitude(longitude);
 						enemy.setUpdateTime(System.currentTimeMillis());
 
+						geocoder.reverseGeoCode(new ReverseGeoCodeOption()
+								.location(new LatLng(latitude, longitude)));
+						enemy.setAddr(address);
+
+						enemy.setDistance(DistanceUtil.getDistance(new LatLng(
+								mylat, mylog), new LatLng(latitude, longitude)));
+
 						// 更新雷达地图覆盖物
 						LatLng ll = new LatLng(latitude, longitude);
 						MarkerOptions makeroption = new MarkerOptions()
-								.icon(bd_enemies).position(ll);
+								.icon(bd_enemies).position(ll)
+								.title(enemy.getPhoneNum());
 						Bundle temp = new Bundle();
 						temp.putString("phonenum", phonenum);
 						makeroption.extraInfo(temp);

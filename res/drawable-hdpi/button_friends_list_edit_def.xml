@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checked="true"
-        android:drawable="@drawable/button_friends_list_done" /> <!-- pressed -->
-    <item android:drawable="@drawable/button_friends_list_edit" /> <!-- default/unchecked -->
+
+    <item android:drawable="@drawable/button_friends_list_done" android:state_checked="true"/>
+    <!-- pressed -->
+    <item android:drawable="@drawable/button_friends_list_edit"/>
+    <!-- default/unchecked -->
+
 </selector>
