@@ -7,14 +7,14 @@ import com.example.friendradar.R;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -24,38 +24,35 @@ import android.widget.ToggleButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
 public class EnemiesListActivity extends Activity {
-	List<People> enemieslist;
+	// UI相关
 	ListView listview_enemies;
-	RadarApplication radarapplication;
-	PeopleListAdapter enemyadapter;
 	Button button_radar;
 	Button button_friend;
 	Button button_add;
 	ToggleButton edit_or_done;
+	
+	//数据相关
+	List<People> enemieslist;
+	RadarApplication radarapplication;
+	PeopleListAdapter enemyadapter;
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.enemies_list);
 
-		radarapplication = (RadarApplication) getApplication();
 		listview_enemies = (ListView) findViewById(R.id.lvw_enemies_list);
-		enemieslist = radarapplication.getEnemies();
 		button_radar = (Button) findViewById(R.id.btn_enemies_list_radar);
 		button_friend = (Button) findViewById(R.id.btn_enemies_list_friends);
 		button_add = (Button) findViewById(R.id.btn_enemies_list_add);
 		edit_or_done = (ToggleButton) findViewById(R.id.btn_enemies_list_edit);
-
-		// 设置两个按钮长度为屏幕的一半长
-		WindowManager windowmanager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-		int width = windowmanager.getDefaultDisplay().getWidth();
-		button_radar.setWidth(width / 2);
-		button_friend.setWidth(width / 2);
-
+		
+		radarapplication = (RadarApplication) getApplication();
+		enemieslist = radarapplication.getEnemies();
 		enemyadapter = new PeopleListAdapter(this, R.layout.enemies_list_item,
 				enemieslist);
+		
 		listview_enemies.setAdapter(enemyadapter);
 
 		// 左上角按钮，返回主界面
@@ -66,6 +63,7 @@ public class EnemiesListActivity extends Activity {
 						MainActivity.class));
 			}
 		});
+		
 		// 右下角按钮，进入朋友列表界面
 		button_friend.setOnClickListener(new OnClickListener() {
 			@Override
@@ -74,6 +72,7 @@ public class EnemiesListActivity extends Activity {
 						FriendsListActivity.class));
 			}
 		});
+		
 		// 添加敌人按钮，弹出添加对话框
 		button_add.setOnClickListener(new OnClickListener() {
 			@SuppressLint("InflateParams")
@@ -153,6 +152,7 @@ public class EnemiesListActivity extends Activity {
 				dialog.show();
 			}
 		});
+		
 		// 编辑按钮，设置是否可以删除
 		edit_or_done.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
@@ -162,7 +162,18 @@ public class EnemiesListActivity extends Activity {
 				} else {
 					enemyadapter.setEdit(PeopleListAdapter.DONE);
 				}
+				listview_enemies.setClickable(!arg1);
 				enemyadapter.notifyDataSetChanged();
+			}
+		});
+		
+		listview_enemies.setOnItemClickListener(new OnItemClickListener(){
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1, int position,
+					long arg3) {
+				Intent intent=new Intent(EnemiesListActivity.this,EnemyDetailActivity.class);
+				intent.putExtra("enemy", enemieslist.get(position));
+				startActivity(intent);
 			}
 		});
 	}

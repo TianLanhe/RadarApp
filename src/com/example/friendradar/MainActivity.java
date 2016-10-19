@@ -35,7 +35,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -71,7 +70,6 @@ public class MainActivity extends Activity {
 	private DeliveryReceiver deliveryreceiver = new DeliveryReceiver();
 	private AlarmReceiver alarmreceiver = new AlarmReceiver();
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -95,11 +93,6 @@ public class MainActivity extends Activity {
 		radarapplication = (RadarApplication) getApplication();
 		list_friends = radarapplication.getFriends();
 		list_enemies = radarapplication.getEnemies();
-		// 设置两个按钮长度为屏幕的一半长
-		WindowManager windowmanager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-		int width = windowmanager.getDefaultDisplay().getWidth();
-		friends.setWidth(width / 2);
-		enemies.setWidth(width / 2);
 
 		// 禁止地图所有手势操作
 		baidumap.getUiSettings().setAllGesturesEnabled(false);
@@ -126,7 +119,7 @@ public class MainActivity extends Activity {
 
 		// 百度地图开启定位，在中心显示自己的位置
 		baidumap.setMyLocationEnabled(true);
-		baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(20));
+		baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(19));
 
 		LocationClientOption option = new LocationClientOption();
 		option.setOpenGps(true); // 打开GPS
@@ -330,8 +323,7 @@ public class MainActivity extends Activity {
 					// 更新雷达地图覆盖物
 					LatLng ll = new LatLng(latitude, longitude);
 					MarkerOptions makeroption = new MarkerOptions()
-							.icon(bd_friends).position(ll)
-							.title(friend.getName());
+							.icon(bd_friends).position(ll);
 					Bundle temp = new Bundle();
 					temp.putString("phonenum", phonenum);
 					makeroption.extraInfo(temp);
@@ -350,8 +342,7 @@ public class MainActivity extends Activity {
 						// 更新雷达地图覆盖物
 						LatLng ll = new LatLng(latitude, longitude);
 						MarkerOptions makeroption = new MarkerOptions()
-								.icon(bd_enemies).position(ll)
-								.title(enemy.getName());
+								.icon(bd_enemies).position(ll);
 						Bundle temp = new Bundle();
 						temp.putString("phonenum", phonenum);
 						makeroption.extraInfo(temp);

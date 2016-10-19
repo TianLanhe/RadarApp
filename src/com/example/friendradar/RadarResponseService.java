@@ -49,11 +49,15 @@ public class RadarResponseService extends Service {
 		String fullmessage = "";
 		for (SmsMessage msg : messages)
 			fullmessage += msg.getMessageBody();// 读取完整短信
+		
+		// 获取电话号码，手机号码可能含中国区号"+86"，需去掉
 		phonenum = messages[0].getOriginatingAddress();
-		if(phonenum.startsWith("+86"))phonenum=phonenum.substring(3);// 手机号码含中国区号"+86"，需去掉
+		if (phonenum.startsWith("+86"))
+			phonenum = phonenum.substring(3);
 		Log.d("mytag", "Receiver_Phonenum:" + phonenum);
 
-		if (fullmessage.equals(ASK_LOCATION_MESSAGE)) {// 如果发送过来的短信是"where are you?"
+		// 如果发送过来的短信是"where are you?"
+		if (fullmessage.equals(ASK_LOCATION_MESSAGE)) {
 			// 查询是否是自己好友
 			RadarApplication radarapplication = (RadarApplication) getApplicationContext();
 			List<People> list_friends = radarapplication.getFriends();
@@ -71,8 +75,9 @@ public class RadarResponseService extends Service {
 
 			// 是的话定位自己位置
 			if (i != list_friends.size()) {
-				notification.setLatestEventInfo(getBaseContext(), phonenum
-						+ "发来一条位置请求短信", "已接受", null);
+				notification.setLatestEventInfo(getBaseContext(), list_friends
+						.get(i).getName() + "(" + phonenum + ")发来一条位置请求短信",
+						"已接受", null);
 				manager.notify(1, notification);
 
 				// 使用百度地图API定位自己的位置
@@ -106,16 +111,10 @@ public class RadarResponseService extends Service {
 				client.start();
 			} else {
 				notification.setLatestEventInfo(getBaseContext(), phonenum
-						+ "发来一条位置请求短信", "已拒绝", null);
+						+ " 发来一条位置请求短信", "已拒绝", null);
 				manager.notify(1, notification);
 			}
 		}
 		return super.onStartCommand(intent, flags, startId);
 	}
-
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-	}
-
 }

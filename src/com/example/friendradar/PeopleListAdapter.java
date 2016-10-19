@@ -43,6 +43,7 @@ public class PeopleListAdapter extends ArrayAdapter<People> {
 		ViewHolder viewholder;
 		if (convertView == null) {
 			view = LayoutInflater.from(getContext()).inflate(resourceID, null);
+			
 			// 将每个item的高度设置为listview宽度的1/10，这样比较好看
 			AbsListView.LayoutParams param = new AbsListView.LayoutParams(
 					ViewGroup.LayoutParams.MATCH_PARENT,
@@ -65,6 +66,10 @@ public class PeopleListAdapter extends ArrayAdapter<People> {
 			viewholder = (ViewHolder) view.getTag();
 		}
 		viewholder.name.setText(people.getName());
+		if (editflag == DONE)
+			viewholder.button_delete.setVisibility(View.GONE);
+		else
+			viewholder.button_delete.setVisibility(View.VISIBLE);
 		viewholder.button_delete.setOnClickListener(new OnClickListener() {
 			@SuppressLint("InflateParams")
 			@Override
@@ -106,6 +111,7 @@ public class PeopleListAdapter extends ArrayAdapter<People> {
 				name.setText(peoplelist.get(position).getName());
 				phonenum.setText(peoplelist.get(position).getPhoneNum());
 
+				//关闭按钮
 				close.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
@@ -113,6 +119,7 @@ public class PeopleListAdapter extends ArrayAdapter<People> {
 					}
 				});
 
+				//确定删除按钮
 				ok.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
@@ -124,10 +131,6 @@ public class PeopleListAdapter extends ArrayAdapter<People> {
 				dialog.show();
 			}
 		});
-		if (editflag == DONE)
-			viewholder.button_delete.setVisibility(View.GONE);
-		else
-			viewholder.button_delete.setVisibility(View.VISIBLE);
 		return view;
 	}
 }

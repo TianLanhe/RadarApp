@@ -7,17 +7,17 @@ import com.example.friendradar.R;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -29,38 +29,30 @@ public class FriendsListActivity extends Activity {
 	Button button_enemy;
 	Button button_add;
 	ToggleButton edit_or_done;
-	PeopleListAdapter friendadapter;
+	ListView listview_friends;
 
 	// 数据相关
 	List<People> friendslist;
-	ListView listview_friends;
+	PeopleListAdapter friendadapter;
 	RadarApplication radarapplication;
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.friends_list);
-
-		radarapplication = (RadarApplication) getApplication();
-		listview_friends = (ListView) findViewById(R.id.lvw_friends_list);
-		friendslist = radarapplication.getFriends();
-
+		
 		button_radar = (Button) findViewById(R.id.btn_friends_list_radar);
 		button_enemy = (Button) findViewById(R.id.btn_friends_list_enemies);
 		button_add = (Button) findViewById(R.id.btn_friends_list_add);
 		edit_or_done = (ToggleButton) findViewById(R.id.btn_friends_list_edit);
+		listview_friends = (ListView) findViewById(R.id.lvw_friends_list);
 
-		// 设置两个按钮长度为屏幕的一半长
-		WindowManager windowmanager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-		int width = windowmanager.getDefaultDisplay().getWidth();
-		button_radar.setWidth(width / 2);
-		button_enemy.setWidth(width / 2);
-
-		// 设置listview适配器
+		radarapplication = (RadarApplication) getApplication();
+		friendslist = radarapplication.getFriends();
 		friendadapter = new PeopleListAdapter(this, R.layout.friends_list_item,
 				friendslist);
+
 		listview_friends.setAdapter(friendadapter);
 
 		// 左下角按钮，返回主界面
@@ -180,7 +172,18 @@ public class FriendsListActivity extends Activity {
 				} else {
 					friendadapter.setEdit(PeopleListAdapter.DONE);
 				}
+				listview_friends.setClickable(!arg1);
 				friendadapter.notifyDataSetChanged();
+			}
+		});
+		
+		listview_friends.setOnItemClickListener(new OnItemClickListener(){
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1, int position,
+					long arg3) {
+				Intent intent=new Intent(FriendsListActivity.this,FriendDetailActivity.class);
+				intent.putExtra("friend", friendslist.get(position));
+				startActivity(intent);
 			}
 		});
 	}
