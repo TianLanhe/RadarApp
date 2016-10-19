@@ -4,5 +4,7 @@
     <string name="app_name">FriendRadar</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="name">NAME:</string>
+    <string name="number">NUMBER:</string>
 
 </resources>

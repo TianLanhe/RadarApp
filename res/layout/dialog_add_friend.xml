@@ -3,13 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/dialog_add_friend"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp" >
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
         android:layout_marginTop="110dp"
         android:orientation="horizontal" >
 
@@ -17,23 +17,24 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:gravity="center"
             android:paddingRight="10dp"
-            android:text="NAME:" />
+            android:text="@string/name"
+            android:textColor="#39b54a" />
 
         <EditText
             android:id="@+id/txt_friend_name"
-            android:inputType="text"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/edit_text_background" />
+            android:layout_weight="2"
+            android:background="@drawable/edit_text_background"
+            android:inputType="text" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
         android:layout_marginTop="10dp"
         android:orientation="horizontal" >
 
@@ -41,18 +42,22 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:gravity="center"
             android:paddingRight="10dp"
-            android:text="NUMBER:" />
+            android:text="@string/number"
+            android:textColor="#39b54a" />
 
         <EditText
-            android:inputType="number"
             android:id="@+id/txt_friend_number"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/edit_text_background" />
+            android:layout_weight="2"
+            android:background="@drawable/edit_text_background"
+            android:inputType="number" />
     </LinearLayout>
 
     <LinearLayout
+        style="?android:attr/buttonBarButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
@@ -61,6 +66,7 @@
 
         <Button
             android:id="@+id/btn_dialog_ok"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="10dp"
@@ -68,6 +74,7 @@
 
         <Button
             android:id="@+id/btn_dialog_close"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/dialog_close_def" />

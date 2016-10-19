@@ -24,14 +24,14 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 public class FriendsListActivity extends Activity {
-	//UI相关
+	// UI相关
 	Button button_radar;
 	Button button_enemy;
 	Button button_add;
 	ToggleButton edit_or_done;
 	PeopleListAdapter friendadapter;
-	
-	//数据相关
+
+	// 数据相关
 	List<People> friendslist;
 	ListView listview_friends;
 	RadarApplication radarapplication;
@@ -46,7 +46,7 @@ public class FriendsListActivity extends Activity {
 		radarapplication = (RadarApplication) getApplication();
 		listview_friends = (ListView) findViewById(R.id.lvw_friends_list);
 		friendslist = radarapplication.getFriends();
-		
+
 		button_radar = (Button) findViewById(R.id.btn_friends_list_radar);
 		button_enemy = (Button) findViewById(R.id.btn_friends_list_enemies);
 		button_add = (Button) findViewById(R.id.btn_friends_list_add);
@@ -58,7 +58,7 @@ public class FriendsListActivity extends Activity {
 		button_radar.setWidth(width / 2);
 		button_enemy.setWidth(width / 2);
 
-		//设置listview适配器
+		// 设置listview适配器
 		friendadapter = new PeopleListAdapter(this, R.layout.friends_list_item,
 				friendslist);
 		listview_friends.setAdapter(friendadapter);
@@ -71,7 +71,7 @@ public class FriendsListActivity extends Activity {
 						MainActivity.class));
 			}
 		});
-		
+
 		// 右下角按钮，进入敌人列表界面
 		button_enemy.setOnClickListener(new OnClickListener() {
 			@Override
@@ -80,7 +80,7 @@ public class FriendsListActivity extends Activity {
 						EnemiesListActivity.class));
 			}
 		});
-		
+
 		// 添加朋友按钮，弹出添加对话框
 		button_add.setOnClickListener(new OnClickListener() {
 			@SuppressLint("InflateParams")
@@ -88,10 +88,10 @@ public class FriendsListActivity extends Activity {
 			public void onClick(View arg0) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(
 						FriendsListActivity.this);
-				
+
 				View dialogview = LayoutInflater.from(FriendsListActivity.this)
 						.inflate(R.layout.dialog_add_friend, null);
-				
+
 				Button close = (Button) dialogview
 						.findViewById(R.id.btn_dialog_close);
 				Button add = (Button) dialogview
@@ -100,12 +100,12 @@ public class FriendsListActivity extends Activity {
 						.findViewById(R.id.txt_friend_number);
 				final EditText etxt_name = (EditText) dialogview
 						.findViewById(R.id.txt_friend_name);
-				
+
 				builder.setView(dialogview);
-				
+
 				final AlertDialog dialog = builder.create();
-				
-				//对话框中关闭按钮
+
+				// 对话框中关闭按钮
 				close.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
@@ -113,14 +113,14 @@ public class FriendsListActivity extends Activity {
 					}
 
 				});
-				
-				//对话框中确定按钮，检查名字和电话号码是否合法，合法则添加新朋友
+
+				// 对话框中确定按钮，检查名字和电话号码是否合法，合法则添加新朋友
 				add.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
 						String name = etxt_name.getText().toString();
 						String number = etxt_number.getText().toString();
-						
+
 						if (!name.equals("") && !number.equals("")) {
 							// 判断电话号码是否已经在朋友列表添加过
 							for (People temp : friendslist) {
@@ -133,18 +133,18 @@ public class FriendsListActivity extends Activity {
 									return;
 								}
 							}
-							//判断电话号码是否已经在敌人列表添加过
-							for(People temp:radarapplication.getEnemies()){
+							// 判断电话号码是否已经在敌人列表添加过
+							for (People temp : radarapplication.getEnemies()) {
 								if (temp.getPhoneNum().equals(number)) {
 									Toast.makeText(
 											getBaseContext(),
 											"The phone number you entered is your enemy!",
 											Toast.LENGTH_LONG).show();
 									etxt_number.setText("");
-									return ;
+									return;
 								}
 							}
-							//电话号码格式不对
+							// 电话号码格式不对
 							if (number.length() != 11
 									|| !number.startsWith("1")) {
 								Toast.makeText(
@@ -170,7 +170,7 @@ public class FriendsListActivity extends Activity {
 				dialog.show();
 			}
 		});
-		
+
 		// 编辑按钮，设置是否可以删除
 		edit_or_done.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override

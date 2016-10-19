@@ -95,7 +95,6 @@ public class MainActivity extends Activity {
 		radarapplication = (RadarApplication) getApplication();
 		list_friends = radarapplication.getFriends();
 		list_enemies = radarapplication.getEnemies();
-registerReceiver(msgreceiver, new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
 		// 设置两个按钮长度为屏幕的一半长
 		WindowManager windowmanager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 		int width = windowmanager.getDefaultDisplay().getWidth();
@@ -200,9 +199,9 @@ registerReceiver(msgreceiver, new IntentFilter("android.provider.Telephony.SMS_R
 					for (People enemy : list_enemies)
 						sendMessage(enemy.getPhoneNum());
 
-					// 15秒后取消注册短信广播接收器
+					// 30秒后取消注册短信广播接收器
 					AlarmManager alarmmanager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-					long starttime = SystemClock.elapsedRealtime() + 1000 * 15;
+					long starttime = SystemClock.elapsedRealtime() + 1000 * 30;
 					Intent intent = new Intent(ALARM_ACTION);
 					PendingIntent pendingintent = PendingIntent.getBroadcast(
 							MainActivity.this, 0, intent, 0);
@@ -229,7 +228,6 @@ registerReceiver(msgreceiver, new IntentFilter("android.provider.Telephony.SMS_R
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-unregisterReceiver(msgreceiver);
 		locationclient.stop();
 		baidumap.setMyLocationEnabled(false);
 		mapview.onDestroy();
@@ -304,34 +302,36 @@ unregisterReceiver(msgreceiver);
 			String fullmessage = "";
 			for (SmsMessage msg : messages)
 				fullmessage += msg.getMessageBody();// 读取完整短信
-			Log.d("mytag","Message:"+fullmessage);
+			Log.d("mytag", "MainActivity_Message:" + fullmessage);
 			// 注意短信内容：纬度/经度
 			String[] location = fullmessage.split("/"); // 分解出纬度和经度
 			if (location.length != 2)
 				Toast.makeText(context, "The message received is illegal!",
 						Toast.LENGTH_SHORT).show();
 			else {
-				String phonenum = messages[0].getOriginatingAddress().substring(3);//手机号码含中国区号"+86"，需去掉
-				Log.d("mytag","phonenum:"+phonenum);
+				String phonenum = messages[0].getOriginatingAddress();
+				if(phonenum.startsWith("+86"))phonenum=phonenum.substring(3);// 手机号码含中国区号"+86"，需去掉
+				Log.d("mytag", "MainActivity_Phonenum:" + phonenum);
 				Double latitude = Double.parseDouble(location[0]);
 				Double longitude = Double.parseDouble(location[1]);
 				int i;
-				for (i = 0; i < list_friends.size(); i++){
+				for (i = 0; i < list_friends.size(); i++) {
 					if (list_friends.get(i).getPhoneNum().equals(phonenum))
 						break;
 				}
-					
+
 				if (i != list_friends.size()) {// 是朋友
-					//设置该朋友属性
+					// 设置该朋友属性
 					People friend = list_friends.get(i);
 					friend.setLatitude(latitude);
 					friend.setLongitude(longitude);
 					friend.setUpdateTime(System.currentTimeMillis());
 
-					//更新雷达地图覆盖物
+					// 更新雷达地图覆盖物
 					LatLng ll = new LatLng(latitude, longitude);
-					MarkerOptions makeroption = new MarkerOptions().icon(
-							bd_friends).position(ll);
+					MarkerOptions makeroption = new MarkerOptions()
+							.icon(bd_friends).position(ll)
+							.title(friend.getName());
 					Bundle temp = new Bundle();
 					temp.putString("phonenum", phonenum);
 					makeroption.extraInfo(temp);
@@ -341,16 +341,17 @@ unregisterReceiver(msgreceiver);
 						if (list_enemies.get(i).getPhoneNum().equals(phonenum))
 							break;
 					if (i != list_enemies.size()) {// 在敌人列表中
-						//设置该敌人属性
+						// 设置该敌人属性
 						People enemy = list_enemies.get(i);
 						enemy.setLatitude(latitude);
 						enemy.setLongitude(longitude);
 						enemy.setUpdateTime(System.currentTimeMillis());
 
-						//更新雷达地图覆盖物
+						// 更新雷达地图覆盖物
 						LatLng ll = new LatLng(latitude, longitude);
-						MarkerOptions makeroption = new MarkerOptions().icon(
-								bd_enemies).position(ll);
+						MarkerOptions makeroption = new MarkerOptions()
+								.icon(bd_enemies).position(ll)
+								.title(enemy.getName());
 						Bundle temp = new Bundle();
 						temp.putString("phonenum", phonenum);
 						makeroption.extraInfo(temp);
@@ -361,7 +362,7 @@ unregisterReceiver(msgreceiver);
 		}
 	}
 
-	// 用来取消注册短信广播接收器的广播，15秒后自动执行
+	// 用来取消注册短信广播接收器的广播，30秒后自动执行
 	class AlarmReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {

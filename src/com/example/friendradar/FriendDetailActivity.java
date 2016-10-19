@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.view.Window;
 
 public class FriendDetailActivity extends Activity {
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

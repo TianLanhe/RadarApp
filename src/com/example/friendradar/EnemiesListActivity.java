@@ -114,18 +114,18 @@ public class EnemiesListActivity extends Activity {
 											"The phone number you entered has already existed!",
 											Toast.LENGTH_LONG).show();
 									etxt_number.setText("");
-									return ;
+									return;
 								}
 							}
-							//判断电话号码是否已经在朋友列表添加过
-							for(People temp:radarapplication.getFriends()){
+							// 判断电话号码是否已经在朋友列表添加过
+							for (People temp : radarapplication.getFriends()) {
 								if (temp.getPhoneNum().equals(number)) {
 									Toast.makeText(
 											getBaseContext(),
 											"The phone number you entered is your friend!",
 											Toast.LENGTH_LONG).show();
 									etxt_number.setText("");
-									return ;
+									return;
 								}
 							}
 							if (number.length() != 11
