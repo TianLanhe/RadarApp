@@ -6,5 +6,9 @@
     <string name="action_settings">Settings</string>
     <string name="name">NAME:</string>
     <string name="number">NUMBER:</string>
+    <string name="latitude_longitude">LATITUDE/LONGITUDE:</string>
+    <string name="address">ADDRESS:</string>
+    <string name="distance">DISTANCE:</string>
+    <string name="last_update_time">LAST_UPDATE_TIME:</string>
 
 </resources>

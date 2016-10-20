@@ -8,41 +8,31 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginTop="120dp" >
-
-        <TextView
-            android:id="@+id/txt_number_label"
-            android:gravity="right"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="#39b54a"
-            android:paddingRight="10dp"
-            android:text="NUMBER: " />
-
-        <!-- The text is hard-coded here but will be set programatically in code in final assembly -->
-
+        android:orientation="vertical"
+        android:layout_marginTop="100dp" >
+        
         <TextView
             android:id="@+id/txt_number"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:textColor="#39b54a"
-            android:paddingRight="10dp"
-            android:text="1234567890" />
+            android:layout_gravity="center"
+            android:paddingRight="10dp" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
+        style="?android:attr/buttonBarButtonStyle"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingLeft="65dp" >
+        android:layout_marginTop="20dp"
+        android:paddingLeft="5dp" >
 
         <Button
             android:id="@+id/btn_dialog_ok"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="10dp"
@@ -50,6 +40,7 @@
 
         <Button
             android:id="@+id/btn_dialog_close"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/dialog_close_def" />

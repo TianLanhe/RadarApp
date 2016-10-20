@@ -78,7 +78,6 @@ public class PeopleListAdapter extends ArrayAdapter<People> {
 				Button ok;
 				Button close;
 				TextView phonenum;
-				TextView name;
 				final List<People> peoplelist;
 
 				if (resourceID == R.layout.friends_list_item) {
@@ -100,17 +99,16 @@ public class PeopleListAdapter extends ArrayAdapter<People> {
 				ok = (Button) dialogview.findViewById(R.id.btn_dialog_ok);
 				close = (Button) dialogview.findViewById(R.id.btn_dialog_close);
 				phonenum = (TextView) dialogview.findViewById(R.id.txt_number);
-				name = (TextView) dialogview
-						.findViewById(R.id.txt_number_label);
 
 				AlertDialog.Builder builder = new AlertDialog.Builder(
 						getContext());
 				builder.setView(dialogview);
 				final AlertDialog dialog = builder.create();
-
-				name.setText(peoplelist.get(position).getName());
-				phonenum.setText(peoplelist.get(position).getPhoneNum());
-
+				
+				phonenum.setText(peoplelist.get(position).getName()+": "+peoplelist.get(position).getPhoneNum());
+				phonenum.setTextSize(10 * ((View) arg0.getParent()).getWidth()
+						/ getContext().getResources().getDisplayMetrics().xdpi);
+				
 				//¹Ø±Õ°´Å¥
 				close.setOnClickListener(new OnClickListener() {
 					@Override

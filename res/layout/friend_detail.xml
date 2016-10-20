@@ -48,9 +48,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
-            android:layout_gravity="center_vertical"
+            android:layout_centerVertical="true"
             android:gravity="center"
-            android:text="NAME"
             android:textColor="#39b54a"
             android:textSize="18sp" />
 
@@ -59,112 +58,111 @@
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:layout_alignParentRight="true"
-            android:background="@drawable/button_list_delete_def" />
+            android:layout_centerVertical="true"
+            android:background="@drawable/button_list_delete_def"
+            android:visibility="gone" />
     </RelativeLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="9"
+        android:orientation="vertical"
         android:background="@drawable/friend_detail_centre_background"
         android:paddingRight="10dp"
+        android:paddingLeft="10dp"
         android:paddingTop="10dp" >
 
         <TextView
             android:id="@+id/txt_number_label"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_marginBottom="32dp"
-            android:layout_marginTop="4dp"
-            android:text="NUMBER:"
+            android:gravity="left"
+            android:text="@string/number"
             android:textColor="#39b54a"
-            android:textSize="15sp" />
+            android:textSize="17sp" />
 
         <TextView
             android:id="@+id/txt_number"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_marginBottom="32dp"
-            android:layout_marginTop="4dp"
-            android:text="12345678901"
+            android:gravity="right"
             android:textColor="@android:color/white"
-            android:textSize="15sp" />
+            android:textSize="17sp" />
 
         <TextView
             android:id="@+id/txt_long_lang_label"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@id/txt_number_label"
-            android:layout_marginBottom="32dp"
-            android:text="LATITUDE/LONGITUDE:"
+            android:gravity="left"
+            android:text="@string/latitude_longitude"
             android:textColor="#39b54a"
-            android:textSize="15sp" />
+            android:textSize="17sp" />
 
         <TextView
             android:id="@+id/txt_long_lang"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@id/txt_number"
-            android:layout_marginBottom="32dp"
-            android:text="22.22N/123.33E"
+            android:gravity="right"
             android:textColor="@android:color/white"
-            android:textSize="15sp" />
+            android:textSize="17sp" />
 
         <TextView
             android:id="@+id/txt_address_label"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@id/txt_long_lang_label"
-            android:layout_marginBottom="32dp"
-            android:text="ADDRESS:"
+            android:gravity="left"
+            android:text="@string/address"
             android:textColor="#39b54a"
-            android:textSize="15sp" />
+            android:textSize="17sp" />
 
         <TextView
             android:id="@+id/txt_address"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@id/txt_long_lang"
-            android:layout_marginBottom="32dp"
-            android:text="广东省珠海市香洲区翠微东路"
+            android:gravity="right"
             android:textColor="@android:color/white"
-            android:textSize="15sp" />
+            android:textSize="17sp" />
 
         <TextView
-            android:id="@+id/txt_last_update_time_label"
-            android:layout_width="wrap_content"
+            android:id="@+id/txt_distance_label"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@id/txt_address_label"
-            android:layout_marginBottom="32dp"
-            android:text="LAST UPDATE TIME:"
+            android:gravity="left"
+            android:text="@string/distance"
             android:textColor="#39b54a"
-            android:textSize="15sp" />
+            android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/txt_distance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:textColor="@android:color/white"
+            android:textSize="17sp" />
+        <TextView
+            android:id="@+id/txt_last_update_time_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:text="@string/last_update_time"
+            android:textColor="#39b54a"
+            android:textSize="17sp" />
 
         <TextView
             android:id="@+id/txt_last_update_time"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@id/txt_address"
-            android:layout_marginBottom="32dp"
-            android:text="6'6''"
+            android:gravity="right"
             android:textColor="@android:color/white"
-            android:textSize="15sp" />
-    </RelativeLayout>
+            android:textSize="17sp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/vgp_footer"
         style="?android:attr/buttonBarButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:background="@drawable/list_footer" >
 
         <Button

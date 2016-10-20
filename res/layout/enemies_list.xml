@@ -52,16 +52,16 @@
             android:id="@+id/btn_enemies_list_radar"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:background="@drawable/button_radar_def" />
 
         <Button
             android:id="@+id/btn_enemies_list_friends"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:background="@drawable/button_friends_def" />
     </LinearLayout>
 

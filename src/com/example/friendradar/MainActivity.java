@@ -400,9 +400,6 @@ public class MainActivity extends Activity {
 					MarkerOptions makeroption = new MarkerOptions()
 							.icon(bd_friends).position(ll)
 							.title(friend.getPhoneNum());
-					Bundle temp = new Bundle();
-					temp.putString("phonenum", phonenum);
-					makeroption.extraInfo(temp);
 					baidumap.addOverlay(makeroption);
 				} else {// 不在朋友列表，搜索敌人列表
 					for (i = 0; i < list_enemies.size(); i++)
@@ -427,9 +424,6 @@ public class MainActivity extends Activity {
 						MarkerOptions makeroption = new MarkerOptions()
 								.icon(bd_enemies).position(ll)
 								.title(enemy.getPhoneNum());
-						Bundle temp = new Bundle();
-						temp.putString("phonenum", phonenum);
-						makeroption.extraInfo(temp);
 						baidumap.addOverlay(makeroption);
 					}
 				}

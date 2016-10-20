@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
@@ -7,11 +7,13 @@
     <RelativeLayout
         android:id="@+id/vgp_enemy_detail_header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:background="@drawable/enemies_list_header"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingTop="8dp" >
+        android:paddingBottom="5dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="5dp" >
 
         <Button
             android:id="@+id/btn_enemies_list"
@@ -33,130 +35,150 @@
     <RelativeLayout
         android:id="@+id/vgp_enemy_detail"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/vgp_enemy_detail_header"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:background="@drawable/enemies_list_item_background"
-        android:paddingLeft="40dp"
+        android:paddingBottom="5dp"
+        android:paddingLeft="50dp"
         android:paddingRight="10dp"
-        android:paddingTop="10dp" >
+        android:paddingTop="5dp" >
 
         <TextView
             android:id="@+id/txt_enemy_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
-            android:paddingLeft="10dp"
-            android:paddingTop="3dp"
+            android:layout_centerVertical="true"
+            android:gravity="center"
             android:textColor="#ec3239"
             android:textSize="18sp" />
 
         <Button
             android:id="@+id/btn_delete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
             android:layout_alignParentRight="true"
-            android:background="@drawable/button_list_delete_def" />
+            android:layout_centerVertical="true"
+            android:background="@drawable/button_list_delete_def"
+            android:visibility="gone" />
     </RelativeLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/vgp_enemy_detail"
+        android:layout_height="0dp"
+        android:layout_weight="9"
         android:background="@drawable/enemy_detail_centre_background"
+        android:orientation="vertical"
         android:paddingRight="10dp"
+        android:paddingLeft="10dp"
         android:paddingTop="10dp" >
 
         <TextView
-            android:id="@+id/txt_enemy_number"
-            android:layout_width="wrap_content"
+            android:id="@+id/txt_number_label"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_marginBottom="32dp"
-            android:layout_marginTop="4dp"
+            android:gravity="left"
+            android:text="@string/number"
+            android:textColor="#ec3239"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/txt_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
             android:textColor="@android:color/white"
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/txt_enemy_long_lang"
-            android:layout_width="wrap_content"
+            android:id="@+id/txt_long_lang_label"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@id/txt_enemy_number"
-            android:layout_marginBottom="32dp"
+            android:gravity="left"
+            android:text="@string/latitude_longitude"
+            android:textColor="#ec3239"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/txt_long_lang"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
             android:textColor="@android:color/white"
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/txt_enemy_altitude"
-            android:layout_width="wrap_content"
+            android:id="@+id/txt_address_label"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@id/txt_enemy_long_lang"
-            android:layout_marginBottom="32dp"
-            android:textColor="@android:color/white"
+            android:gravity="left"
+            android:text="@string/address"
+            android:textColor="#ec3239"
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/txt_enemy_accuracy"
-            android:layout_width="wrap_content"
+            android:id="@+id/txt_address"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@id/txt_enemy_altitude"
-            android:layout_marginBottom="32dp"
+            android:gravity="right"
             android:textColor="@android:color/white"
+            android:textSize="15sp" />
+        <TextView
+            android:id="@+id/txt_distance_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:text="@string/distance"
+            android:textColor="#ec3239"
+            android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/txt_distance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:textColor="@android:color/white"
+            android:textSize="17sp" />
+        <TextView
+            android:id="@+id/txt_last_update_time_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:text="@string/last_update_time"
+            android:textColor="#ec3239"
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/txt_enemy_nearest_city"
-            android:layout_width="wrap_content"
+            android:id="@+id/txt_last_update_time"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@id/txt_enemy_accuracy"
-            android:layout_marginBottom="24dp"
+            android:gravity="right"
             android:textColor="@android:color/white"
             android:textSize="15sp" />
+    </LinearLayout>
 
-        <TextView
-            android:id="@+id/txt_enemy_secs_last_update"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@id/txt_enemy_nearest_city"
-            android:layout_marginBottom="32dp"
-            android:textColor="@android:color/white"
-            android:textSize="15sp" />
-
-        <TextView
-            android:id="@+id/txt_enemy_secs_next_update"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@id/txt_enemy_secs_last_update"
-            android:layout_marginBottom="32dp"
-            android:textColor="@android:color/white"
-            android:textSize="15sp" />
-    </RelativeLayout>
-
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/vgp_footer"
-        android:layout_width="fill_parent"
+        style="?android:attr/buttonBarButtonStyle"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:background="@drawable/list_footer" >
 
         <Button
             android:id="@+id/btn_radar"
-            android:layout_width="wrap_content"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
+            android:layout_weight="1"
             android:background="@drawable/button_radar_def" />
 
         <Button
             android:id="@+id/btn_friends"
-            android:layout_width="wrap_content"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_weight="1"
             android:background="@drawable/button_friends_def" />
-    </RelativeLayout>
+    </LinearLayout>
 
-</RelativeLayout>
+</LinearLayout>
