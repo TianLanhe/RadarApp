@@ -1,11 +1,13 @@
 package com.example.friendradar;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.List;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewTreeObserver;
@@ -13,6 +15,7 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.Toast;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -30,12 +33,16 @@ public class FriendDetailActivity extends Activity {
 
 	// 数据相关
 	People friend;
+	RadarApplication radarapplication;
 
+	@SuppressLint("SimpleDateFormat")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.friend_detail);
+
+		radarapplication = (RadarApplication) getApplication();
 
 		button_radar = (Button) findViewById(R.id.btn_radar);
 		button_enemy = (Button) findViewById(R.id.btn_enemies);
@@ -50,10 +57,10 @@ public class FriendDetailActivity extends Activity {
 		people_info[3] = (TextView) findViewById(R.id.txt_long_lang);
 		people_info[4] = (TextView) findViewById(R.id.txt_address_label);
 		people_info[5] = (TextView) findViewById(R.id.txt_address);
-		people_info[6] = (TextView) findViewById(R.id.txt_last_update_time_label);
-		people_info[7] = (TextView) findViewById(R.id.txt_last_update_time);
-		people_info[8] = (TextView) findViewById(R.id.txt_distance_label);
-		people_info[9] = (TextView) findViewById(R.id.txt_distance);
+		people_info[6] = (TextView) findViewById(R.id.txt_distance_label);
+		people_info[7] = (TextView) findViewById(R.id.txt_distance);
+		people_info[8] = (TextView) findViewById(R.id.txt_last_update_time_label);
+		people_info[9] = (TextView) findViewById(R.id.txt_last_update_time);
 
 		people_name = (TextView) findViewById(R.id.txt_friend_name);
 
@@ -71,49 +78,58 @@ public class FriendDetailActivity extends Activity {
 									.getDisplayMetrics().xdpi);
 				people_name.setTextSize(10
 						* people_info[0].getWidth()
-						/ getBaseContext().getResources()
-								.getDisplayMetrics().xdpi);
+						/ getBaseContext().getResources().getDisplayMetrics().xdpi);
 			}
 		});
-		
-		//设置各个textview的内容
-		friend=(People) getIntent().getSerializableExtra("friend");
+
+		// 设置各个textview的内容
+		friend = (People) getIntent().getSerializableExtra("friend");
 		people_name.setText(friend.getName());
 		people_info[1].setText(friend.getPhoneNum());
-		if(friend.getLastUpdate()==0){
-			for(int i=3;i<10;i+=2)
+		if (friend.getLastUpdate() == 0) {
+			for (int i = 3; i < 10; i += 2)
 				people_info[i].setText("无");
-		}else{
+		} else {
+			// 经纬度
 			String latitude;
 			String longitude;
-			if(friend.getLongitude()>0)
-				longitude=friend.getLongitude()+"E";
+			if (friend.getLongitude() > 0)
+				longitude = friend.getLongitude() + "E";
 			else
-				longitude=-friend.getLongitude()+"W";
-			if(friend.getLatitude()>0)
-				latitude=friend.getLatitude()+"N";
+				longitude = -friend.getLongitude() + "W";
+			if (friend.getLatitude() > 0)
+				latitude = friend.getLatitude() + "N";
 			else
-				latitude=-friend.getLatitude()+"S";
-			people_info[3].setText(latitude+"/"+longitude);
-			
+				latitude = -friend.getLatitude() + "S";
+			people_info[3].setText(latitude + "/" + longitude);
+
+			// 地址
 			people_info[5].setText(friend.getAddr());
-			
+
+			// 距离
 			String distance;
-			if(friend.getDistance()<1000){
-				distance="<"+(int)(friend.getDistance()+1)+"M";
-			}else{
-				distance="<"+(int)(friend.getDistance()/1000+1)+"M";
+			if (friend.getDistance() < 1000) {
+				distance = "<" + (int) (friend.getDistance() + 1) + "M";
+			} else {
+				distance = "<" + (int) (friend.getDistance() / 1000 + 1) + "M";
 			}
 			people_info[7].setText(distance);
-			
-			long currenttime=System.currentTimeMillis();
-			Date date=new Date(friend.getLastUpdate()-currenttime);
-			SimpleDateFormat dateformat=new SimpleDateFormat("HH:mm:ss");
-			String str_time=dateformat.format(date);
+
+			// 最后更新时间
+			long interval = System.currentTimeMillis() - friend.getLastUpdate();
+			long day = interval / 1000 / 60 / 60 / 24;
+			String str_time;
+			if (day > 0) {
+				str_time = day + " day ago";
+			} else {
+				long hours = (interval % (1000 * 60 * 60 * 24))
+						/ (1000 * 60 * 60);
+				long minutes = (interval % (1000 * 60 * 60)) / (1000 * 60);
+				long seconds = (interval % (1000 * 60)) / 1000;
+				str_time = "Before " + hours + ":" + minutes + ":" + seconds;
+			}
 			people_info[9].setText(str_time);
 		}
-		
-		
 
 		// 返回雷达
 		button_radar.setOnClickListener(new OnClickListener() {
@@ -154,6 +170,63 @@ public class FriendDetailActivity extends Activity {
 					button_delete.setVisibility(View.VISIBLE);
 				else
 					button_delete.setVisibility(View.GONE);
+			}
+		});
+
+		// 删除按钮，删除该朋友
+		button_delete.setOnClickListener(new OnClickListener() {
+			@SuppressLint("InflateParams")
+			@Override
+			public void onClick(View arg0) {
+				View dialogview = null;
+				Button ok;
+				Button close;
+				TextView phonenum;
+				final List<People> friends;
+
+				friends = radarapplication.getFriends();
+				dialogview = LayoutInflater.from(FriendDetailActivity.this)
+						.inflate(R.layout.dialog_delete_friend, null);
+
+				ok = (Button) dialogview.findViewById(R.id.btn_dialog_ok);
+				close = (Button) dialogview.findViewById(R.id.btn_dialog_close);
+				phonenum = (TextView) dialogview.findViewById(R.id.txt_number);
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						FriendDetailActivity.this);
+				builder.setView(dialogview);
+				final AlertDialog dialog = builder.create();
+
+				phonenum.setText("");
+
+				// 关闭按钮
+				close.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						dialog.dismiss();
+					}
+				});
+
+				// 确定删除按钮
+				ok.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						int i;
+						for (i = 0; i < friends.size(); i++)
+							if (friends.get(i).getPhoneNum()
+									.equals(friend.getPhoneNum()))
+								break;
+						if (i != friends.size()) {
+							friends.remove(i);
+							dialog.dismiss();
+							finish();
+						} else {
+							Toast.makeText(getBaseContext(), "Delete Error!",
+									Toast.LENGTH_SHORT).show();
+						}
+					}
+				});
+				dialog.show();
 			}
 		});
 	}

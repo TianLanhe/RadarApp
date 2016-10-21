@@ -41,7 +41,7 @@ public class FriendsListActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.friends_list);
-		
+
 		button_radar = (Button) findViewById(R.id.btn_friends_list_radar);
 		button_enemy = (Button) findViewById(R.id.btn_friends_list_enemies);
 		button_add = (Button) findViewById(R.id.btn_friends_list_add);
@@ -176,15 +176,23 @@ public class FriendsListActivity extends Activity {
 				friendadapter.notifyDataSetChanged();
 			}
 		});
-		
-		listview_friends.setOnItemClickListener(new OnItemClickListener(){
+
+		// 子项单击事件，打开敌人详细界面
+		listview_friends.setOnItemClickListener(new OnItemClickListener() {
 			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, int position,
-					long arg3) {
-				Intent intent=new Intent(FriendsListActivity.this,FriendDetailActivity.class);
+			public void onItemClick(AdapterView<?> arg0, View arg1,
+					int position, long arg3) {
+				Intent intent = new Intent(FriendsListActivity.this,
+						FriendDetailActivity.class);
 				intent.putExtra("friend", friendslist.get(position));
 				startActivity(intent);
 			}
 		});
+	}
+	
+	@Override
+	protected void onStart(){
+		super.onStart();
+		friendadapter.notifyDataSetChanged();
 	}
 }

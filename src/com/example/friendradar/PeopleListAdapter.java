@@ -43,7 +43,7 @@ public class PeopleListAdapter extends ArrayAdapter<People> {
 		ViewHolder viewholder;
 		if (convertView == null) {
 			view = LayoutInflater.from(getContext()).inflate(resourceID, null);
-			
+
 			// 将每个item的高度设置为listview宽度的1/10，这样比较好看
 			AbsListView.LayoutParams param = new AbsListView.LayoutParams(
 					ViewGroup.LayoutParams.MATCH_PARENT,
@@ -104,12 +104,13 @@ public class PeopleListAdapter extends ArrayAdapter<People> {
 						getContext());
 				builder.setView(dialogview);
 				final AlertDialog dialog = builder.create();
-				
-				phonenum.setText(peoplelist.get(position).getName()+": "+peoplelist.get(position).getPhoneNum());
+
+				phonenum.setText(peoplelist.get(position).getName() + ": "
+						+ peoplelist.get(position).getPhoneNum());
 				phonenum.setTextSize(10 * ((View) arg0.getParent()).getWidth()
 						/ getContext().getResources().getDisplayMetrics().xdpi);
-				
-				//关闭按钮
+
+				// 关闭按钮
 				close.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
@@ -117,7 +118,7 @@ public class PeopleListAdapter extends ArrayAdapter<People> {
 					}
 				});
 
-				//确定删除按钮
+				// 确定删除按钮
 				ok.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {

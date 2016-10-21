@@ -42,7 +42,8 @@
         <activity
             android:name="com.example.friendradar.MainActivity"
             android:label="@string/app_name"
-            android:launchMode="singleTask" >
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -51,12 +52,17 @@
         </activity>
         <activity
             android:name="com.example.friendradar.FriendsListActivity"
-            android:launchMode="singleTask" />
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait" />
         <activity
             android:name="com.example.friendradar.EnemiesListActivity"
             android:launchMode="singleTask" />
-        <activity android:name=".FriendDetailActivity" />
-        <activity android:name=".EnemyDetailActivity" />
+        <activity
+            android:name=".FriendDetailActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".EnemyDetailActivity"
+            android:screenOrientation="portrait" />
 
         <service
             android:name="com.baidu.location.f"

@@ -49,7 +49,7 @@ public class RadarResponseService extends Service {
 		String fullmessage = "";
 		for (SmsMessage msg : messages)
 			fullmessage += msg.getMessageBody();// 读取完整短信
-		
+
 		// 获取电话号码，手机号码可能含中国区号"+86"，需去掉
 		phonenum = messages[0].getOriginatingAddress();
 		if (phonenum.startsWith("+86"))

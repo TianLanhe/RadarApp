@@ -30,8 +30,8 @@ public class EnemiesListActivity extends Activity {
 	Button button_friend;
 	Button button_add;
 	ToggleButton edit_or_done;
-	
-	//数据相关
+
+	// 数据相关
 	List<People> enemieslist;
 	RadarApplication radarapplication;
 	PeopleListAdapter enemyadapter;
@@ -47,12 +47,12 @@ public class EnemiesListActivity extends Activity {
 		button_friend = (Button) findViewById(R.id.btn_enemies_list_friends);
 		button_add = (Button) findViewById(R.id.btn_enemies_list_add);
 		edit_or_done = (ToggleButton) findViewById(R.id.btn_enemies_list_edit);
-		
+
 		radarapplication = (RadarApplication) getApplication();
 		enemieslist = radarapplication.getEnemies();
 		enemyadapter = new PeopleListAdapter(this, R.layout.enemies_list_item,
 				enemieslist);
-		
+
 		listview_enemies.setAdapter(enemyadapter);
 
 		// 左上角按钮，返回主界面
@@ -63,7 +63,7 @@ public class EnemiesListActivity extends Activity {
 						MainActivity.class));
 			}
 		});
-		
+
 		// 右下角按钮，进入朋友列表界面
 		button_friend.setOnClickListener(new OnClickListener() {
 			@Override
@@ -72,7 +72,7 @@ public class EnemiesListActivity extends Activity {
 						FriendsListActivity.class));
 			}
 		});
-		
+
 		// 添加敌人按钮，弹出添加对话框
 		button_add.setOnClickListener(new OnClickListener() {
 			@SuppressLint("InflateParams")
@@ -152,7 +152,7 @@ public class EnemiesListActivity extends Activity {
 				dialog.show();
 			}
 		});
-		
+
 		// 编辑按钮，设置是否可以删除
 		edit_or_done.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
@@ -166,15 +166,23 @@ public class EnemiesListActivity extends Activity {
 				enemyadapter.notifyDataSetChanged();
 			}
 		});
-		
-		listview_enemies.setOnItemClickListener(new OnItemClickListener(){
+
+		// 子项单击事件，打开敌人详细界面
+		listview_enemies.setOnItemClickListener(new OnItemClickListener() {
 			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, int position,
-					long arg3) {
-				Intent intent=new Intent(EnemiesListActivity.this,EnemyDetailActivity.class);
+			public void onItemClick(AdapterView<?> arg0, View arg1,
+					int position, long arg3) {
+				Intent intent = new Intent(EnemiesListActivity.this,
+						EnemyDetailActivity.class);
 				intent.putExtra("enemy", enemieslist.get(position));
 				startActivity(intent);
 			}
 		});
+	}
+	
+	@Override
+	protected void onStart(){
+		super.onStart();
+		enemyadapter.notifyDataSetChanged();
 	}
 }

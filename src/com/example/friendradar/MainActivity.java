@@ -68,11 +68,15 @@ public class MainActivity extends Activity {
 	private List<People> list_friends;
 	private List<People> list_enemies;
 	private RadarApplication radarapplication;
-	String address;// 以成员变量为桥梁，储存反地址编码得到的地址
-	double mylat;
-	double mylog;
+	private String people_index;// 以成员变量为桥梁，储存下标，用于反地址编码设置地址。
+	private double mylat;
+	private double mylog;
+	private final double scale[] = { 10000001, 10000000, 5000000, 2000000,
+			1000000, 500000, 200000, 100000, 50000, 25000, 20000, 10000, 5000,
+			2000, 1000, 500, 200, 100, 50, 20 };// 百度地图比例尺，用于动态调整比例尺使所有覆盖物均在可视范围内
+	private double max_distance;// 记录一次刷新中距离最远的覆盖物，求它能显示的比例尺，保证所有覆盖物均在可视范围内
 
-	// 询问短信常量
+	// 询问短信常量与广播常量
 	private final String ASK_LOCATION_MESSAGE = "Where are you?";
 	private final String SEND_ACTION = "com.example.friendradar.SEND_ACTION";
 	private final String DELIVERY_ACTION = "com.example.frinedradar.DELIVERY_ACTION";
@@ -134,7 +138,7 @@ public class MainActivity extends Activity {
 
 		// 百度地图开启定位，在中心显示自己的位置
 		baidumap.setMyLocationEnabled(true);
-		baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(19));
+		baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(18));
 
 		LocationClientOption option = new LocationClientOption();
 		option.setOpenGps(true); // 打开GPS
@@ -152,7 +156,6 @@ public class MainActivity extends Activity {
 				else {
 					LatLng ll = new LatLng(location.getLatitude(), location
 							.getLongitude());
-
 					mylat = location.getLatitude();
 					mylog = location.getLongitude();
 
@@ -160,7 +163,6 @@ public class MainActivity extends Activity {
 					Log.d("mytag", "Longitude:" + location.getLongitude());
 					Log.d("mytag", "Address:" + location.getAddrStr());
 
-					// baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(15));
 					baidumap.animateMapStatus(MapStatusUpdateFactory // 将地图定位到该位置
 							.newLatLng(ll));
 
@@ -204,15 +206,19 @@ public class MainActivity extends Activity {
 					registerReceiver(alarmreceiver, new IntentFilter(
 							ALARM_ACTION));
 
+					// max_distance清零，在一次刷新中求最大距离，设置比例尺
+					max_distance = 0;
+
 					// 给每个朋友和敌人发送一条短信
 					for (People friend : list_friends)
 						sendMessage(friend.getPhoneNum());
 					for (People enemy : list_enemies)
 						sendMessage(enemy.getPhoneNum());
 
-					// 30秒后取消注册短信广播接收器
+					Toast.makeText(MainActivity.this, "Start to locate", Toast.LENGTH_SHORT).show();
+					// 40秒后取消注册短信广播接收器
 					AlarmManager alarmmanager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-					long starttime = SystemClock.elapsedRealtime() + 1000 * 30;
+					long starttime = SystemClock.elapsedRealtime() + 1000 * 40;
 					Intent intent = new Intent(ALARM_ACTION);
 					PendingIntent pendingintent = PendingIntent.getBroadcast(
 							MainActivity.this, 0, intent, 0);
@@ -258,6 +264,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
+		// 百度地图地理编码监听函数
 		geocoder.setOnGetGeoCodeResultListener(new OnGetGeoCoderResultListener() {
 			@Override
 			public void onGetGeoCodeResult(GeoCodeResult arg0) {
@@ -267,7 +274,15 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onGetReverseGeoCodeResult(ReverseGeoCodeResult result) {
-				address = result.getAddress();
+				String index = people_index;
+				// index含两个字符，第一个为0表示朋友列表，其他表示敌人列表
+				// 第二个为下标
+				if (index.charAt(0) == '0')
+					list_friends.get(index.charAt(1) - 48).setAddr(
+							result.getAddress());
+				else
+					list_enemies.get(index.charAt(1) - 48).setAddr(
+							result.getAddress());
 			}
 		});
 	}
@@ -293,7 +308,6 @@ public class MainActivity extends Activity {
 		mapview.onDestroy();
 		bd_friends.recycle();
 		bd_enemies.recycle();
-
 		// 保存朋友列表，若列表为空，则删除文件，否则将列表对象写入文件
 		if (list_friends.size() != 0) {
 			FileOutputStream out;
@@ -352,7 +366,6 @@ public class MainActivity extends Activity {
 	class RadarLocationMsgReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-
 			Bundle bundle = intent.getExtras();
 			Object[] pdus = (Object[]) bundle.get("pdus");
 			SmsMessage[] messages = new SmsMessage[pdus.length];
@@ -362,7 +375,6 @@ public class MainActivity extends Activity {
 			String fullmessage = "";
 			for (SmsMessage msg : messages)
 				fullmessage += msg.getMessageBody();// 读取完整短信
-			Log.d("mytag", "MainActivity_Message:" + fullmessage);
 			// 注意短信内容：纬度/经度
 			String[] location = fullmessage.split("/"); // 分解出纬度和经度
 			if (location.length != 2)
@@ -372,9 +384,9 @@ public class MainActivity extends Activity {
 				String phonenum = messages[0].getOriginatingAddress();
 				if (phonenum.startsWith("+86"))
 					phonenum = phonenum.substring(3);// 手机号码含中国区号"+86"，需去掉
-				Log.d("mytag", "MainActivity_Phonenum:" + phonenum);
 				Double latitude = Double.parseDouble(location[0]);
 				Double longitude = Double.parseDouble(location[1]);
+
 				int i;
 				for (i = 0; i < list_friends.size(); i++) {
 					if (list_friends.get(i).getPhoneNum().equals(phonenum))
@@ -382,56 +394,101 @@ public class MainActivity extends Activity {
 				}
 
 				if (i != list_friends.size()) {// 是朋友
+					people_index = "0" + i;
 					// 设置该朋友属性
 					People friend = list_friends.get(i);
 					friend.setLatitude(latitude);
 					friend.setLongitude(longitude);
 					friend.setUpdateTime(System.currentTimeMillis());
 
+					// 反地址编码取得地址，但是不能立刻在这之后firend.setAddr，因为调用
+					// 反地址编码后并不能确保立刻得到地址
 					geocoder.reverseGeoCode(new ReverseGeoCodeOption()
 							.location(new LatLng(latitude, longitude)));
-					friend.setAddr(address);
 
 					friend.setDistance(DistanceUtil.getDistance(new LatLng(
 							mylat, mylog), new LatLng(latitude, longitude)));
 
-					// 更新雷达地图覆盖物
+					Log.d("mytag", "MainActivity_Message:" + fullmessage);
+					Log.d("mytag", "MainActivity_Phonenum:" + phonenum);
+					Log.d("mytag", "Latitude:" + friend.getLatitude());
+					Log.d("mytag", "Longitude:" + friend.getLongitude());
+					Log.d("mytag", "Distance:" + friend.getDistance());
+
+					// 添加雷达地图覆盖物
 					LatLng ll = new LatLng(latitude, longitude);
 					MarkerOptions makeroption = new MarkerOptions()
 							.icon(bd_friends).position(ll)
 							.title(friend.getPhoneNum());
 					baidumap.addOverlay(makeroption);
+
+					// 更新最大距离，若是新的最大距离，则调整比例尺
+					if (max_distance < DistanceUtil.getDistance(new LatLng(
+							mylat, mylog), new LatLng(latitude, longitude))) {
+						max_distance = DistanceUtil.getDistance(new LatLng(
+								mylat, mylog), new LatLng(latitude, longitude));
+						int scale_index = 0;
+						while (scale_index < scale.length
+								&& max_distance / 5 < scale[scale_index])
+							scale_index++;
+						baidumap.animateMapStatus(MapStatusUpdateFactory
+								.zoomTo((float) (scale_index - 1.3)));
+						Log.d("mytag","Scale_index:"+scale_index);
+					}
 				} else {// 不在朋友列表，搜索敌人列表
 					for (i = 0; i < list_enemies.size(); i++)
 						if (list_enemies.get(i).getPhoneNum().equals(phonenum))
 							break;
 					if (i != list_enemies.size()) {// 在敌人列表中
+						people_index = "1" + i;
 						// 设置该敌人属性
 						People enemy = list_enemies.get(i);
 						enemy.setLatitude(latitude);
 						enemy.setLongitude(longitude);
 						enemy.setUpdateTime(System.currentTimeMillis());
 
+						// 反地址编码取得地址，但是不能立刻在这之后firend.setAddr，因为调用
+						// 反地址编码后并不能确保立刻得到地址
 						geocoder.reverseGeoCode(new ReverseGeoCodeOption()
 								.location(new LatLng(latitude, longitude)));
-						enemy.setAddr(address);
 
 						enemy.setDistance(DistanceUtil.getDistance(new LatLng(
 								mylat, mylog), new LatLng(latitude, longitude)));
 
-						// 更新雷达地图覆盖物
+						Log.d("mytag", "MainActivity_Message:" + fullmessage);
+						Log.d("mytag", "MainActivity_Phonenum:" + phonenum);
+						Log.d("mytag", "Latitude:" + enemy.getLatitude());
+						Log.d("mytag", "Longitude:" + enemy.getLongitude());
+						Log.d("mytag", "Distance:" + enemy.getDistance());
+
+						// 添加雷达地图覆盖物
 						LatLng ll = new LatLng(latitude, longitude);
 						MarkerOptions makeroption = new MarkerOptions()
 								.icon(bd_enemies).position(ll)
 								.title(enemy.getPhoneNum());
 						baidumap.addOverlay(makeroption);
+
+						// 更新最大距离，若是新的最大距离，则调整比例尺
+						if (max_distance < DistanceUtil.getDistance(new LatLng(
+								mylat, mylog), new LatLng(latitude, longitude))) {
+							max_distance = DistanceUtil.getDistance(new LatLng(
+									mylat, mylog), new LatLng(latitude,
+									longitude));
+							int scale_index = 0;
+							while (scale_index < scale.length
+									&& max_distance / 5 < scale[scale_index])
+								scale_index++;
+							baidumap.animateMapStatus(MapStatusUpdateFactory
+									.zoomTo((float) (scale_index - 1.3)));
+							Log.d("mytag","Scale_index:"+scale_index);
+						}
 					}
 				}
 			}
 		}
 	}
 
-	// 用来取消注册短信广播接收器的广播，30秒后自动执行
+	// 用来取消注册短信广播接收器的广播，40秒后自动执行
 	class AlarmReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -439,6 +496,7 @@ public class MainActivity extends Activity {
 			context.unregisterReceiver(sendreceiver);
 			context.unregisterReceiver(deliveryreceiver);
 			context.unregisterReceiver(alarmreceiver);
+			Toast.makeText(MainActivity.this, "Stop to locate", Toast.LENGTH_SHORT).show();
 		}
 	}
 
