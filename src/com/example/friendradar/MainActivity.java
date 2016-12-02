@@ -3,6 +3,7 @@ package com.example.friendradar;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.baidu.location.BDLocation;
@@ -19,6 +20,9 @@ import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.map.OverlayOptions;
+import com.baidu.mapapi.map.PolylineOptions;
+import com.baidu.mapapi.map.TextOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.search.geocode.GeoCodeResult;
 import com.baidu.mapapi.search.geocode.GeoCoder;
@@ -77,6 +81,8 @@ public class MainActivity extends Activity {
 	private double max_distance;// 记录一次刷新中距离最远的覆盖物，求它能显示的比例尺，保证所有覆盖物均在可视范围内
 
 	// 询问短信常量与广播常量
+	private final int FRIEND = 1;
+	private final int ENEMY = 0;
 	private final String ASK_LOCATION_MESSAGE = "Where are you?";
 	private final String SEND_ACTION = "com.example.friendradar.SEND_ACTION";
 	private final String DELIVERY_ACTION = "com.example.frinedradar.DELIVERY_ACTION";
@@ -184,6 +190,10 @@ public class MainActivity extends Activity {
 			public void onClick(View arg0) {
 				baidumap.clear();// 清除地图所有覆盖物
 				locationclient.requestLocation();// 要start后才能请求位置
+				baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo(18));// 较精确地显示自己位置
+				max_distance = 0;
+				initLocation(list_friends, FRIEND);
+				initLocation(list_enemies, ENEMY);
 			}
 		});
 
@@ -208,6 +218,7 @@ public class MainActivity extends Activity {
 
 					// max_distance清零，在一次刷新中求最大距离，设置比例尺
 					max_distance = 0;
+					baidumap.clear();
 
 					// 给每个朋友和敌人发送一条短信
 					for (People friend : list_friends)
@@ -215,7 +226,8 @@ public class MainActivity extends Activity {
 					for (People enemy : list_enemies)
 						sendMessage(enemy.getPhoneNum());
 
-					Toast.makeText(MainActivity.this, "Start to locate", Toast.LENGTH_SHORT).show();
+					Toast.makeText(MainActivity.this, "Start to locate",
+							Toast.LENGTH_SHORT).show();
 					// 40秒后取消注册短信广播接收器
 					AlarmManager alarmmanager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 					long starttime = SystemClock.elapsedRealtime() + 1000 * 40;
@@ -298,6 +310,98 @@ public class MainActivity extends Activity {
 				PendingIntent.FLAG_UPDATE_CURRENT);
 		smsmanager.sendTextMessage(phonenum, null, ASK_LOCATION_MESSAGE,
 				sentIntent, deliveryIntent);
+	}
+
+	// 将目前好友和敌人有记录的位置显示出来
+	private void initLocation(List<People> list_people, int flag) {
+		for (People people : list_people) {
+			if (people.getLastUpdate() != 0) {
+				double latitude = people.getLatitude();
+				double longitude = people.getLongitude();
+
+				// 添加雷达地图覆盖物
+				LatLng ll = new LatLng(latitude, longitude);
+				MarkerOptions makeroption = new MarkerOptions().position(ll)
+						.title(people.getPhoneNum());
+				if (flag == FRIEND)
+					makeroption.icon(bd_friends);
+				else if (flag == ENEMY)
+					makeroption.icon(bd_enemies);
+				else
+					return;
+				baidumap.addOverlay(makeroption);
+
+				// 添加直线
+				LatLng ll_i = new LatLng(mylat, mylog);
+				List<LatLng> points = new ArrayList<LatLng>();
+				points.add(ll);
+				points.add(ll_i);
+				PolylineOptions ooPolyline = new PolylineOptions().width(5)
+						.points(points);// 宽度为5，颜色是绿色
+				if (flag == FRIEND)
+					ooPolyline.color(0xAA39b54a);
+				else if (flag == ENEMY)
+					ooPolyline.color(0xAAec3239);
+				else
+					return;
+				baidumap.addOverlay(ooPolyline);
+
+				// 显示距离
+				people.setDistance(DistanceUtil.getDistance(ll_i, ll));
+				String distance;
+				if (people.getDistance() < 1000)
+					distance = (int) (people.getDistance() + 0.5) + "M";
+				else
+					distance = (int) (people.getDistance() / 1000 + 0.5) + "KM";
+				LatLng llText = new LatLng((latitude + mylat) / 2,
+						(longitude + mylog) / 2);// 两点的中点
+				TextOptions ooText = new TextOptions().fontSize(30)
+						.text(distance).position(llText);
+				if (flag == FRIEND)
+					ooText.fontColor(0xAA39b54a);
+				else if (flag == ENEMY)
+					ooText.fontColor(0xAAec3239);
+				else
+					return;
+				baidumap.addOverlay(ooText);
+
+				// 显示姓名
+				LatLng ll_name = new LatLng(latitude - 0.00005, longitude);
+				TextOptions oo_name = new TextOptions().fontSize(30)
+						.text(people.getName()).position(ll_name);
+				if (flag == FRIEND)
+					oo_name.fontColor(0xAA39b54a);
+				else if (flag == ENEMY)
+					oo_name.fontColor(0xAAec3239);
+				else
+					return;
+				baidumap.addOverlay(oo_name);
+
+				// 更新最大距离，若是新的最大距离，则调整比例尺
+				setZoom(people.getDistance());
+			}
+		}
+	}
+
+	// 更新最大距离，若是新的最大距离，则调整比例尺
+	private void setZoom(double distance) {
+		if (max_distance < distance) {
+			max_distance = distance;
+			int scale_index = 0;
+			while (scale_index < scale.length
+					&& max_distance/5 < scale[scale_index])
+				scale_index++;
+			double zoom = scale_index - 1.3;
+			if (scale_index != 0 && scale_index != scale.length) {
+				if((max_distance/5 - scale[scale_index])
+						/ (scale[scale_index - 1] - scale[scale_index])>0.7)
+				zoom -= (max_distance/5 - scale[scale_index])
+						/ (scale[scale_index - 1] - scale[scale_index])/2;
+			}
+			baidumap.animateMapStatus(MapStatusUpdateFactory
+					.zoomTo((float) zoom));
+			Log.d("MainActivity", "Zoom_to:" + zoom);
+		}
 	}
 
 	@Override
@@ -422,19 +526,40 @@ public class MainActivity extends Activity {
 							.title(friend.getPhoneNum());
 					baidumap.addOverlay(makeroption);
 
-					// 更新最大距离，若是新的最大距离，则调整比例尺
-					if (max_distance < DistanceUtil.getDistance(new LatLng(
-							mylat, mylog), new LatLng(latitude, longitude))) {
-						max_distance = DistanceUtil.getDistance(new LatLng(
-								mylat, mylog), new LatLng(latitude, longitude));
-						int scale_index = 0;
-						while (scale_index < scale.length
-								&& max_distance / 5 < scale[scale_index])
-							scale_index++;
-						baidumap.animateMapStatus(MapStatusUpdateFactory
-								.zoomTo((float) (scale_index - 1.3)));
-						Log.d("mytag","Scale_index:"+scale_index);
+					// 添加直线
+					LatLng ll_friend = new LatLng(latitude, longitude);
+					LatLng ll_i = new LatLng(mylat, mylog);
+					List<LatLng> points = new ArrayList<LatLng>();
+					points.add(ll_friend);
+					points.add(ll_i);
+					OverlayOptions ooPolyline = new PolylineOptions().width(5)
+							.color(0xAA39b54a).points(points);// 宽度为5，颜色是绿色
+					baidumap.addOverlay(ooPolyline);
+
+					// 显示距离
+					String distance;
+					if (friend.getDistance() < 1000) {
+						distance = (int) (friend.getDistance() + 0.5) + "M";
+					} else {
+						distance = (int) (friend.getDistance() / 1000 + 0.5)
+								+ "KM";
 					}
+					LatLng llText = new LatLng((latitude + mylat) / 2,
+							(longitude + mylog) / 2);// 两点的中点
+					OverlayOptions ooText = new TextOptions().fontSize(30)
+							.fontColor(0xFF39b54a).text(distance)
+							.position(llText);
+					baidumap.addOverlay(ooText);
+
+					// 显示姓名
+					LatLng ll_name = new LatLng(latitude - 0.00005, longitude);
+					OverlayOptions oo_name = new TextOptions().fontSize(30)
+							.fontColor(0xFF39b54a).text(friend.getName())
+							.position(ll_name);
+					baidumap.addOverlay(oo_name);
+
+					// 更新最大距离，若是新的最大距离，则调整比例尺
+					setZoom(friend.getDistance());
 				} else {// 不在朋友列表，搜索敌人列表
 					for (i = 0; i < list_enemies.size(); i++)
 						if (list_enemies.get(i).getPhoneNum().equals(phonenum))
@@ -468,20 +593,41 @@ public class MainActivity extends Activity {
 								.title(enemy.getPhoneNum());
 						baidumap.addOverlay(makeroption);
 
-						// 更新最大距离，若是新的最大距离，则调整比例尺
-						if (max_distance < DistanceUtil.getDistance(new LatLng(
-								mylat, mylog), new LatLng(latitude, longitude))) {
-							max_distance = DistanceUtil.getDistance(new LatLng(
-									mylat, mylog), new LatLng(latitude,
-									longitude));
-							int scale_index = 0;
-							while (scale_index < scale.length
-									&& max_distance / 5 < scale[scale_index])
-								scale_index++;
-							baidumap.animateMapStatus(MapStatusUpdateFactory
-									.zoomTo((float) (scale_index - 1.3)));
-							Log.d("mytag","Scale_index:"+scale_index);
+						// 添加直线
+						LatLng ll_enemy = new LatLng(latitude, longitude);
+						LatLng ll_i = new LatLng(mylat, mylog);
+						List<LatLng> points = new ArrayList<LatLng>();
+						points.add(ll_enemy);
+						points.add(ll_i);
+						OverlayOptions ooPolyline = new PolylineOptions()
+								.width(5).color(0xFFec3239).points(points);// 宽度为5，颜色是红色
+						baidumap.addOverlay(ooPolyline);
+
+						// 显示距离
+						String distance;
+						if (enemy.getDistance() < 1000) {
+							distance = (int) (enemy.getDistance() + 0.5) + "M";
+						} else {
+							distance = (int) (enemy.getDistance() / 1000 + 0.5)
+									+ "KM";
 						}
+						LatLng llText = new LatLng((latitude + mylat) / 2,
+								(longitude + mylog) / 2);// 两点的中点
+						OverlayOptions ooText = new TextOptions().fontSize(30)
+								.fontColor(0xFFec3239).text(distance)
+								.position(llText);
+						baidumap.addOverlay(ooText);
+
+						// 显示姓名
+						LatLng ll_name = new LatLng(latitude - 0.00005,
+								longitude);
+						OverlayOptions oo_name = new TextOptions().fontSize(30)
+								.fontColor(0xFFec3239).text(enemy.getName())
+								.position(ll_name);
+						baidumap.addOverlay(oo_name);
+
+						// 更新最大距离，若是新的最大距离，则调整比例尺
+						setZoom(enemy.getDistance());
 					}
 				}
 			}
@@ -496,7 +642,8 @@ public class MainActivity extends Activity {
 			context.unregisterReceiver(sendreceiver);
 			context.unregisterReceiver(deliveryreceiver);
 			context.unregisterReceiver(alarmreceiver);
-			Toast.makeText(MainActivity.this, "Stop to locate", Toast.LENGTH_SHORT).show();
+			Toast.makeText(MainActivity.this, "Stop to locate",
+					Toast.LENGTH_SHORT).show();
 		}
 	}
 

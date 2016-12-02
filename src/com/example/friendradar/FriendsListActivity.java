@@ -189,9 +189,9 @@ public class FriendsListActivity extends Activity {
 			}
 		});
 	}
-	
+
 	@Override
-	protected void onStart(){
+	protected void onStart() {
 		super.onStart();
 		friendadapter.notifyDataSetChanged();
 	}

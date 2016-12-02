@@ -179,9 +179,9 @@ public class EnemiesListActivity extends Activity {
 			}
 		});
 	}
-	
+
 	@Override
-	protected void onStart(){
+	protected void onStart() {
 		super.onStart();
 		enemyadapter.notifyDataSetChanged();
 	}

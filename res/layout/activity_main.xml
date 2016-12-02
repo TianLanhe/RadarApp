@@ -9,21 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clickable="false" />
-<!-- 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:paddingTop="10dp" >
-
-        <ImageView
-            android:id="@+id/imageview_sweep"
-
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@null"
-            android:src="@drawable/radar_sweep" />
-    </RelativeLayout>  -->
 
     <LinearLayout
         android:layout_width="match_parent"

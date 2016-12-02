@@ -111,7 +111,7 @@ public class FriendDetailActivity extends Activity {
 			if (friend.getDistance() < 1000) {
 				distance = "<" + (int) (friend.getDistance() + 1) + "M";
 			} else {
-				distance = "<" + (int) (friend.getDistance() / 1000 + 1) + "M";
+				distance = "<" + (int) (friend.getDistance() / 1000 + 1) + "KM";
 			}
 			people_info[7].setText(distance);
 

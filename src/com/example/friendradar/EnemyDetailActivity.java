@@ -111,7 +111,7 @@ public class EnemyDetailActivity extends Activity {
 			if (enemy.getDistance() < 1000) {
 				distance = "<" + (int) (enemy.getDistance() + 1) + "M";
 			} else {
-				distance = "<" + (int) (enemy.getDistance() / 1000 + 1) + "M";
+				distance = "<" + (int) (enemy.getDistance() / 1000 + 1) + "KM";
 			}
 			people_info[7].setText(distance);
 
