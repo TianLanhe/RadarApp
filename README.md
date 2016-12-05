@@ -1,5 +1,3 @@
-# RaderApp
-
 ### 介绍：
 基于短信的定位软件，分敌人和朋友两种类型，可定位全国范围的地理位置
 
@@ -20,8 +18,19 @@
 
 ### 功能详细介绍：
 核心功能：
-当用户点击主界面右上角按钮尝试更新地理位置信息时，会向所有朋友和敌人发送位置请求短信"Who are you?"，并开启反馈短信接收器，40秒内有效，在40秒内若接收到相应格式的短信，则处理并更新相应的朋友或敌人信息。40秒后则无效，此规定防止用户恶意向程序发送位置坐标，强迫程序更新信息，避免短信风暴引起的安全性问题。若在反馈短信接收器打开期间收到短信，则检查短信是否符合经纬度格式("纬度/经度")，若符合则检查短信发送者是否是自己的好友或敌人，是则根据经纬度和短信发送者手机号更新相应好友(敌人)的经纬度坐标、详细地址、距离、最后更新时间等，并在地图上相应经纬度坐标显示覆盖物。这里禁止雷达地图的手势操作，使用比例尺智能调节算法调整地图的可视范围，使任何一个覆盖物均能显示在地图上。((__[比例尺调节算法见下说明](#比例尺调节算法)__))而在被请求位置一端，若短信接收器检测到"Where are you?"的短信，则查询短信发送者是否是自己的朋友，是则将自己的经纬度发送给对方，并在通知栏显示接受消息，否则不发送坐标，并在通知栏显示拒绝消息(是自己的敌人也不能发送自己坐标)
+当用户点击主界面右上角按钮尝试更新地理位置信息时，会向所有朋友和敌人发送位置请求短信"Who are you?"，并开启反馈短信接收器，40秒内有效，在40秒内若接收到相应格式的短信，则处理并更新相应的朋友或敌人信息(__[定时短信接收器相关代码](#定时短信接收器相关代码)__。40秒后则无效，此规定防止用户恶意向程序发送位置坐标，强迫程序更新信息，避免短信风暴引起的安全性问题。若在反馈短信接收器打开期间收到短信，则检查短信是否符合经纬度格式("纬度/经度")，若符合则检查短信发送者是否是自己的好友或敌人，是则根据经纬度和短信发送者手机号更新相应好友(敌人)的经纬度坐标、详细地址、距离、最后更新时间等，并在地图上相应经纬度坐标显示覆盖物。这里禁止雷达地图的手势操作，使用比例尺智能调节算法调整地图的可视范围，使任何一个覆盖物均能显示在地图上。(__[比例尺调节算法见下说明](#比例尺调节算法)__)而在被请求位置一端，若短信接收器检测到"Where are you?"的短信，则查询短信发送者是否是自己的朋友，是则将自己的经纬度发送给对方，并在通知栏显示接受消息，否则不发送坐标，并在通知栏显示拒绝消息(是自己的敌人也不能发送自己坐标)
 
+短信示例：<br>
+![](https://github.com/TianLanhe/RadarApp/raw/master/screenshot/msg_example.png)
+
+拒绝示例：<br>
+![](https://github.com/TianLanhe/RadarApp/raw/master/screenshot/reject.png)
+
+接受实例：<br>
+![](https://github.com/TianLanhe/RadarApp/raw/master/screenshot/accept.png)
+
+成功定位实例：<br>
+![](https://github.com/TianLanhe/RadarApp/raw/master/screenshot/location1.png) ![](https://github.com/TianLanhe/RadarApp/raw/master/screenshot/location2.png)
 
 点击左下角进入朋友列表界面<br>
 ![](https://github.com/TianLanhe/RadarApp/raw/master/screenshot/friends_list.png)
@@ -51,18 +60,51 @@ private double max_distance;// 记录一次刷新中距离最远的覆盖物，�
 if (max_distance < distance) {
 	max_distance = distance;
 	int scale_index = 0;
-	while (scale_index < scale.length
-			&& max_distance/5 < scale[scale_index])
+	while (scale_index < scale.length && max_distance/5 < scale[scale_index])
 		scale_index++;
-	double zoom = scale_index - 1.3;
+	double zoom = scale_index - 1.3;	//max_distance/5 和scale_index - 1.3 是摸索出来的
 	if (scale_index != 0 && scale_index != scale.length) {
-		if((max_distance/5 - scale[scale_index])
-				/ (scale[scale_index - 1] - scale[scale_index])>0.7)
-		zoom -= (max_distance/5 - scale[scale_index])
-						/ (scale[scale_index - 1] - scale[scale_index])/2;
+		if((max_distance/5 - scale[scale_index]) / (scale[scale_index - 1] - scale[scale_index])>0.7)
+		zoom -= (max_distance/5 - scale[scale_index]) / (scale[scale_index - 1] - scale[scale_index])/2;
 	}
-	baidumap.animateMapStatus(MapStatusUpdateFactory
-					.zoomTo((float) zoom));
-	Log.d("MainActivity", "Zoom_to:" + zoom);
+	baidumap.animateMapStatus(MapStatusUpdateFactory.zoomTo((float) zoom));
+}
+```
+
+###定时短信接收器相关代码
+```java
+// 广播接收器
+private RadarLocationMsgReceiver msgreceiver = new RadarLocationMsgReceiver();
+// 注册短信广播接收器
+registerReceiver(msgreceiver, new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
+//定时事件接收器
+registerReceiver(alarmreceiver, new IntentFilter(ALARM_ACTION));
+
+// max_distance清零，在一次刷新中求最大距离，设置比例尺
+max_distance = 0;
+baidumap.clear();
+
+// 给每个朋友和敌人发送一条短信
+for (People friend : list_friends)
+	sendMessage(friend.getPhoneNum());
+for (People enemy : list_enemies)
+	sendMessage(enemy.getPhoneNum());
+
+// 40秒后取消注册短信广播接收器
+AlarmManager alarmmanager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+long starttime = SystemClock.elapsedRealtime() + 1000 * 40;
+Intent intent = new Intent(ALARM_ACTION);
+PendingIntent pendingintent = PendingIntent.getBroadcast(
+		MainActivity.this, 0, intent, 0);
+alarmmanager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+		starttime, pendingintent);
+
+// 用来取消注册短信广播接收器的广播，40秒后自动执行
+class AlarmReceiver extends BroadcastReceiver {
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		context.unregisterReceiver(msgreceiver);
+		context.unregisterReceiver(alarmreceiver);
+	}
 }
 ```

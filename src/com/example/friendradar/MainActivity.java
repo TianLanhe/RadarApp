@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
 	private final String ALARM_ACTION = "com.example.frinedradar.ALARM_ACTION";
 
 	// ¹ã²¥½ÓÊÕÆ÷
-	private RadarLocationMsgReceiver msgreceiver = new RadarLocationMsgReceiver();;
+	private RadarLocationMsgReceiver msgreceiver = new RadarLocationMsgReceiver();
 	private SendReceiver sendreceiver = new SendReceiver();
 	private DeliveryReceiver deliveryreceiver = new DeliveryReceiver();
 	private AlarmReceiver alarmreceiver = new AlarmReceiver();
