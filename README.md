@@ -50,7 +50,7 @@
 点击详细界面的EDIT，可删除该好友<br>
 ![](https://github.com/TianLanhe/RadarApp/raw/master/screenshot/detail_edit.png)
 
-###比例尺调节算法
+### 比例尺调节算法
 ```java
 private final double scale[] = { 10000001, 10000000, 5000000, 2000000,
 			1000000, 500000, 200000, 100000, 50000, 25000, 20000, 10000, 5000,
@@ -71,7 +71,7 @@ if (max_distance < distance) {
 }
 ```
 
-###定时短信接收器相关代码
+### 定时短信接收器相关代码
 ```java
 // 广播接收器
 private RadarLocationMsgReceiver msgreceiver = new RadarLocationMsgReceiver();
